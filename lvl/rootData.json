@@ -1,0 +1,16 @@
+[
+    {
+        "thirdPerson": "true",
+        "cIsPressed": "false",
+        "kIsPressed": "false",
+        "avatarJumpForce": "0",
+        "isOnPLatform": "false",
+        "platformArray": "5",
+        "avatarJumpForceUp": "true",
+        "avatarLives": "3",
+        "iTriggerActivator": "0",
+        "triggerOn": "false",
+        "createNewPlatform" : "false",
+        "score": "0"
+    }
+]
