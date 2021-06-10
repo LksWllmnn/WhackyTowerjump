@@ -15,7 +15,6 @@ var PrimaAbgabeLW;
     PrimaAbgabeLW.gameState = new GameState();
     class Hud {
         static start() {
-            console.log("hi aus der hud");
             let domHud = document.querySelector("div");
             Hud.controller = new fu.Controller(PrimaAbgabeLW.gameState, domHud);
             Hud.controller.updateUserInterface();

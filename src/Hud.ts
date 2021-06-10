@@ -15,7 +15,6 @@ namespace PrimaAbgabeLW {
         private static controller: fu.Controller;
     
         public static start(): void {
-            console.log("hi aus der hud");
             let domHud: HTMLDivElement = document.querySelector("div");
             Hud.controller = new fu.Controller(gameState, domHud);
             Hud.controller.updateUserInterface();

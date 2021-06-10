@@ -1,23 +1,34 @@
 namespace PrimaAbgabeLW {
     import fc = FudgeCore;
 
+    interface BaseData {
+        cIsPressed: boolean;
+        createNewPlatform: boolean;
+        iTriggerActivator: number;
+        isOnPLatform: boolean;
+        kIsPressed: boolean;
+        platformArray: number;
+        score: number;
+        thirdPerson: true;
+        triggerOn: boolean;
+    }
+        
+
+    
+    
     let graph: fc.Graph;
     let allPlatforms: fc.Node; 
     let allStopper: fc.Node; 
     
     let viewport: fc.Viewport;
-    let cmpCamera: fc.ComponentCamera;
+    export let cmpCamera: fc.ComponentCamera;
     
     let thirdPerson: boolean = true;
     let cIsPressed: boolean = false;
     let kIsPressed: boolean = false;
 
-    let cmpAvatar: fc.ComponentRigidbody;
-    let headMovement: fc.Node;
-    let avatar: fc.Node; 
-    let avatarJumpForce: number = 0;
-    let avatarJumpForceUp: boolean = true;
-    let avatarLives: number;
+    let cmpAvatar: fc.ComponentRigidbody; 
+    let avatar: Avatar;
     let ray: fc.RayHitInfo;
 
     let farCamera: fc.Node; 
@@ -53,10 +64,12 @@ namespace PrimaAbgabeLW {
     }
 
     async function loadBaseData(): Promise<void> {
-        console.log("hi");
         let baseJson: Response = await fetch("../lvl/rootData.json");
+        let baseData: BaseData = await baseJson.json();
+        console.log(baseData);
+        cIsPressed = baseData["cIsPressed"];
+        
 
-        console.log(baseJson.text());
         hndlLoaded();
     }
 
@@ -65,11 +78,9 @@ namespace PrimaAbgabeLW {
 
         gameState.score = 0;
         loadAllButtons();
-        console.log("hi2");
 
         let canvas: HTMLCanvasElement = document.querySelector("canvas");
 
-        cmpAvatar = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
         viewport = new FudgeCore.Viewport();
         cmpCamera = new FudgeCore.ComponentCamera();
         
@@ -80,8 +91,9 @@ namespace PrimaAbgabeLW {
         transFarCamera = new fc.ComponentTransform();
         mtxFarCam = new fc.Vector3(-20, 15, -20);
 
-        avatar = new fc.Node("Avatar");
-        settingUpAvatar();
+        avatar = new Avatar("Avatar");
+        graph.addChild(avatar);
+        cmpAvatar = avatar.getComponent(fc.ComponentRigidbody);
 
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
@@ -98,8 +110,7 @@ namespace PrimaAbgabeLW {
         farCamera.addComponent(cmpCamera);
         graph.addChild(farCamera);
 
-        avatarLives = 3;
-        gameState.lives = avatarLives;
+        gameState.lives = avatar.lives;
 
         iTriggerActivator = 0;
         triggerOn = false;
@@ -118,7 +129,7 @@ namespace PrimaAbgabeLW {
         fc.Loop.addEventListener(fc.EVENT.LOOP_FRAME, renderAFrame);
 
         fc.AudioManager.default.listenTo(graph);
-        fc.AudioManager.default.listenWith(headMovement.getComponent(ƒ.ComponentAudioListener));
+        fc.AudioManager.default.listenWith(avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
     }
 
     function loadAllButtons(): void {
@@ -176,15 +187,15 @@ namespace PrimaAbgabeLW {
         }
 
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E])) {
-            headMovement.mtxLocal.rotateX(-2);
+            avatar.headMovement.mtxLocal.rotateX(-2);
         }
 
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R])) {
-            headMovement.mtxLocal.rotateX(2);
+            avatar.headMovement.mtxLocal.rotateX(2);
         }
 
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit) {
-            computeJumpForce();
+            avatar.computeJumpForce();
         }
 
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.C]) && !cIsPressed) {
@@ -231,12 +242,12 @@ namespace PrimaAbgabeLW {
         
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && isOnPLatform) {
             isOnPLatform = false;
-            avatarLives--;
-            gameState.lives = avatarLives;
+            avatar.lives--;
+            gameState.lives = avatar.lives;
             getPlattformDown();
         }
         
-        if (avatarLives == 0) {
+        if (avatar.lives == 0) {
             console.log("you loose");
             restartGame();
         }
@@ -274,126 +285,24 @@ namespace PrimaAbgabeLW {
         graph = null;
     }
 
-    /*
-    AVATAR
-    */
-
-    function settingUpAvatar(): void {
-        let ears: fc.ComponentAudioListener = new fc.ComponentAudioListener();
-        
-        headMovement = new fc.Node("Head");
-        
-        let cmpTransHead: fc.ComponentTransform = new fc.ComponentTransform();
-        cmpTransHead.mtxLocal.translateY(0.5);
-        cmpTransHead.mtxLocal.translateZ(0);
-
-        let avatarBody: fc.Node = new fc.Node("AvatarBody");
-        let avatarFeet: fc.Node = new fc.Node("AvatarFeet");
-
-        let nose: fc.Node = new fc.Node("AvatarFarView");
-
-        let avatarMeshHead: fc.Mesh = new fc.MeshSphere("AvatarMesh", 6, 6);
-        let cmpAvatarMeshHead: fc.ComponentMesh = new fc.ComponentMesh(avatarMeshHead);
-        let avatarMeshBody: fc.Mesh = new fc.MeshCube("AvatarMeshBody");
-        let cmpAvatarMeshBody: fc.ComponentMesh = new fc.ComponentMesh(avatarMeshBody);
-        cmpAvatarMeshBody.mtxPivot.scaleX(0.75);
-        cmpAvatarMeshBody.mtxPivot.scaleZ(0.75);
-        let cmpAvatarMeshFeet: fc.ComponentMesh = new fc.ComponentMesh(avatarMeshHead);
-        cmpAvatarMeshFeet.mtxPivot.translateY(-0.5);
-        let cmpNoseMesh: fc.ComponentMesh = new fc.ComponentMesh(avatarMeshBody);
-        cmpNoseMesh.mtxPivot.scaleY(0.3);
-        cmpNoseMesh.mtxPivot.scaleX(0.2);
-        cmpNoseMesh.mtxPivot.scaleZ(1);
-        cmpNoseMesh.mtxPivot.translateZ(0.2);
-
-        let avatarMat: fc.Material = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("RED")));
-        let cmpAvatarMat: fc.ComponentMaterial = new fc.ComponentMaterial(avatarMat);
-        let cmpAvatarMatBody: fc.ComponentMaterial = new fc.ComponentMaterial(avatarMat);
-        let cmpAvatarMatFeet: fc.ComponentMaterial = new fc.ComponentMaterial(avatarMat);
-        let cmpNoseMat: fc.ComponentMaterial = new fc.ComponentMaterial(avatarMat);
-        
-
-        //cmpAvatar = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
-        cmpAvatar.restitution = 0.5;
-        cmpAvatar.rotationInfluenceFactor = fc.Vector3.ZERO();
-        cmpAvatar.friction = 1;
-
-        cmpCamera.mtxPivot.translateY(1);
-        cmpCamera.mtxPivot.translateZ(-5);
-
-        avatar.addComponent(new fc.ComponentTransform(fc.Matrix4x4.TRANSLATION(fc.Vector3.Y(5))));
-
-        avatarBody.addComponent(cmpAvatarMeshBody);
-        avatarBody.addComponent(cmpAvatarMatBody);
-        avatarFeet.addComponent(cmpAvatarMeshFeet);
-        avatarFeet.addComponent(cmpAvatarMatFeet);
-
-        nose.addComponent(cmpNoseMesh);
-        nose.addComponent(cmpNoseMat);
-
-        
-        avatar.addComponent(cmpAvatar);
-
-        headMovement.addComponent(cmpAvatarMeshHead);
-        headMovement.addComponent(cmpAvatarMat);
-        headMovement.addComponent(cmpTransHead);
-        headMovement.addComponent(ears);
-        headMovement.appendChild(nose);
-
-        //avatarFarView.addComponent(cmpCamera);
-
-        avatar.appendChild(headMovement);
-        avatar.appendChild(avatarBody);
-        avatar.appendChild(avatarFeet);
-        
-
-
-        graph.appendChild(avatar);
-    }
-
-    function computeJumpForce(): void {
-        if (avatarJumpForceUp) {
-            avatarJumpForce = avatarJumpForce + 2;
-            if (avatarJumpForce > 100)
-                avatarJumpForceUp = false;
-        } else if (!avatarJumpForceUp) {
-            avatarJumpForce = avatarJumpForce - 2;
-            if (avatarJumpForce <= 0)
-                avatarJumpForceUp = true;
-        }
-        gameState.jumpStrength = avatarJumpForce;
-        //console.log(avatarJumpForce);
-    }
-
     function hndlJump(_event: KeyboardEvent): void {
-        if (_event.code == "Space") {
-            let jumpVector: fc.Vector3 = new fc.Vector3(headMovement.mtxWorld.getZ().x * avatarJumpForce * 5, headMovement.mtxWorld.getZ().y + 1 * avatarJumpForce * 5, headMovement.mtxWorld.getZ().z * avatarJumpForce * 5);
-            cmpAvatar.applyForce(jumpVector);
-            avatarJumpForce = 0;
-            gameState.jumpStrength = avatarJumpForce;
-        }
-        
+        avatar.hndlJump(_event);
     }
 
     function hndlCameraPerspective(): void {
-        console.log(thirdPerson);
         if (thirdPerson) {
             thirdPerson = false;
-            headMovement.addComponent(cmpCamera);
+            avatar.headMovement.addComponent(cmpCamera);
         } else if (!thirdPerson) {
             thirdPerson = true;
             farCamera.addComponent(cmpCamera);
         }
     }
 
-
     /*
     PLATFORMS
     */
-
-
     function getPlattformDown(): void {
-        //console.log("!!! PLaforms down");
         for (let i: number = 1; i < allPlatforms.getChildren().length; i++) {
             
             let platformDown: Platform = allPlatforms.getChild(i) as Platform;
@@ -411,8 +320,6 @@ namespace PrimaAbgabeLW {
                 platformDown.activePlatform = false;
                 platformDown.up = false;
             }
-
-            //console.log(platformDown.number + " : " + "platform up: " + platformDown.up + " : " + platformDown.mtxLocal.translation.y);
         }     
 
         let newActive: Platform = allPlatforms.getChild(0) as Platform ;
@@ -426,7 +333,6 @@ namespace PrimaAbgabeLW {
             alert("You Won!!");
             restartGame();
         }
-        
     }
 
     function createPlatform(): void {
@@ -456,18 +362,7 @@ namespace PrimaAbgabeLW {
             }
             allPlatforms.addChild(platformArray[i]);
             createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
-
-            /*if (i == platformArray.length - 1) {
-                //console.log("hi");
-                platformPos = computenextPlatformPosition(platformArray[i]);
-                platformCoordinates = computeNextPlatformCoordinates(platformPos, platformArray[i].mtxLocal.translation.y - 30 );
-                let aim: Aim = new Aim("platform" + i + 1, platformCoordinates, new fc.Vector3(5, 1, 5), false, i + 1, platformPos, false);
-                allPlatforms.addChild(aim);
-                createStopper(aim.position, aim.mtxLocal.translation, aim.number);
-            }*/
         }
-
-
     }
 
     export function getPlatformUp(_platform: Platform): void {
@@ -475,8 +370,6 @@ namespace PrimaAbgabeLW {
         
         _platform.activePlatform = true;
         _platform.up = true;
-
-        //console.log(_platform.number + " : " + "platform up: " + _platform.up + " : " + _platform.mtxLocal.translation.y);
 
         for (let i: number = 0; i < allStopper.getChildren().length; i++) {
             let stopper: Stopper = allStopper.getChild(i) as Stopper;

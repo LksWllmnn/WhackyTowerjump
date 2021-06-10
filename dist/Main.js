@@ -6,16 +6,11 @@ var PrimaAbgabeLW;
     let allPlatforms;
     let allStopper;
     let viewport;
-    let cmpCamera;
     let thirdPerson = true;
     let cIsPressed = false;
     let kIsPressed = false;
     let cmpAvatar;
-    let headMovement;
     let avatar;
-    let avatarJumpForce = 0;
-    let avatarJumpForceUp = true;
-    let avatarLives;
     let ray;
     let farCamera;
     let transFarCamera;
@@ -38,27 +33,27 @@ var PrimaAbgabeLW;
         loadBaseData();
     }
     async function loadBaseData() {
-        console.log("hi");
         let baseJson = await fetch("../lvl/rootData.json");
-        console.log(baseJson.text());
+        let baseData = await baseJson.json();
+        console.log(baseData);
+        cIsPressed = baseData["cIsPressed"];
         hndlLoaded();
     }
     function hndlLoaded() {
         fc.Physics.settings.debugDraw = true;
         PrimaAbgabeLW.gameState.score = 0;
         loadAllButtons();
-        console.log("hi2");
         let canvas = document.querySelector("canvas");
-        cmpAvatar = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
         viewport = new FudgeCore.Viewport();
-        cmpCamera = new FudgeCore.ComponentCamera();
+        PrimaAbgabeLW.cmpCamera = new FudgeCore.ComponentCamera();
         allPlatforms = new fc.Node("All Platforms");
         allStopper = new fc.Node("AllStopper");
         farCamera = new fc.Node("FarCamera");
         transFarCamera = new fc.ComponentTransform();
         mtxFarCam = new fc.Vector3(-20, 15, -20);
-        avatar = new fc.Node("Avatar");
-        settingUpAvatar();
+        avatar = new PrimaAbgabeLW.Avatar("Avatar");
+        graph.addChild(avatar);
+        cmpAvatar = avatar.getComponent(fc.ComponentRigidbody);
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
         transFarCamera.mtxLocal.translateY(15);
@@ -68,22 +63,21 @@ var PrimaAbgabeLW;
         transFarCamera.mtxLocal.rotateX(35);
         transFarCamera.mtxLocal.rotateZ(0);
         farCamera.addComponent(transFarCamera);
-        farCamera.addComponent(cmpCamera);
+        farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         graph.addChild(farCamera);
-        avatarLives = 3;
-        PrimaAbgabeLW.gameState.lives = avatarLives;
+        PrimaAbgabeLW.gameState.lives = avatar.lives;
         iTriggerActivator = 0;
         PrimaAbgabeLW.triggerOn = false;
         PrimaAbgabeLW.createNewPlatform = false;
         createRigidbodys();
         createPlatform();
-        viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
+        viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
         PrimaAbgabeLW.Hud.start();
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
         fc.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, renderAFrame);
         fc.AudioManager.default.listenTo(graph);
-        fc.AudioManager.default.listenWith(headMovement.getComponent(ƒ.ComponentAudioListener));
+        fc.AudioManager.default.listenWith(avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
     }
     function loadAllButtons() {
         let restartButton = document.getElementById("restart");
@@ -125,13 +119,13 @@ var PrimaAbgabeLW;
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, -_offset));
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E])) {
-            headMovement.mtxLocal.rotateX(-2);
+            avatar.headMovement.mtxLocal.rotateX(-2);
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R])) {
-            headMovement.mtxLocal.rotateX(2);
+            avatar.headMovement.mtxLocal.rotateX(2);
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit) {
-            computeJumpForce();
+            avatar.computeJumpForce();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.C]) && !cIsPressed) {
             hndlCameraPerspective();
@@ -171,11 +165,11 @@ var PrimaAbgabeLW;
         }
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && PrimaAbgabeLW.isOnPLatform) {
             PrimaAbgabeLW.isOnPLatform = false;
-            avatarLives--;
-            PrimaAbgabeLW.gameState.lives = avatarLives;
+            avatar.lives--;
+            PrimaAbgabeLW.gameState.lives = avatar.lives;
             getPlattformDown();
         }
-        if (avatarLives == 0) {
+        if (avatar.lives == 0) {
             console.log("you loose");
             restartGame();
         }
@@ -206,99 +200,23 @@ var PrimaAbgabeLW;
         graph.removeAllChildren();
         graph = null;
     }
-    /*
-    AVATAR
-    */
-    function settingUpAvatar() {
-        let ears = new fc.ComponentAudioListener();
-        headMovement = new fc.Node("Head");
-        let cmpTransHead = new fc.ComponentTransform();
-        cmpTransHead.mtxLocal.translateY(0.5);
-        cmpTransHead.mtxLocal.translateZ(0);
-        let avatarBody = new fc.Node("AvatarBody");
-        let avatarFeet = new fc.Node("AvatarFeet");
-        let nose = new fc.Node("AvatarFarView");
-        let avatarMeshHead = new fc.MeshSphere("AvatarMesh", 6, 6);
-        let cmpAvatarMeshHead = new fc.ComponentMesh(avatarMeshHead);
-        let avatarMeshBody = new fc.MeshCube("AvatarMeshBody");
-        let cmpAvatarMeshBody = new fc.ComponentMesh(avatarMeshBody);
-        cmpAvatarMeshBody.mtxPivot.scaleX(0.75);
-        cmpAvatarMeshBody.mtxPivot.scaleZ(0.75);
-        let cmpAvatarMeshFeet = new fc.ComponentMesh(avatarMeshHead);
-        cmpAvatarMeshFeet.mtxPivot.translateY(-0.5);
-        let cmpNoseMesh = new fc.ComponentMesh(avatarMeshBody);
-        cmpNoseMesh.mtxPivot.scaleY(0.3);
-        cmpNoseMesh.mtxPivot.scaleX(0.2);
-        cmpNoseMesh.mtxPivot.scaleZ(1);
-        cmpNoseMesh.mtxPivot.translateZ(0.2);
-        let avatarMat = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("RED")));
-        let cmpAvatarMat = new fc.ComponentMaterial(avatarMat);
-        let cmpAvatarMatBody = new fc.ComponentMaterial(avatarMat);
-        let cmpAvatarMatFeet = new fc.ComponentMaterial(avatarMat);
-        let cmpNoseMat = new fc.ComponentMaterial(avatarMat);
-        //cmpAvatar = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
-        cmpAvatar.restitution = 0.5;
-        cmpAvatar.rotationInfluenceFactor = fc.Vector3.ZERO();
-        cmpAvatar.friction = 1;
-        cmpCamera.mtxPivot.translateY(1);
-        cmpCamera.mtxPivot.translateZ(-5);
-        avatar.addComponent(new fc.ComponentTransform(fc.Matrix4x4.TRANSLATION(fc.Vector3.Y(5))));
-        avatarBody.addComponent(cmpAvatarMeshBody);
-        avatarBody.addComponent(cmpAvatarMatBody);
-        avatarFeet.addComponent(cmpAvatarMeshFeet);
-        avatarFeet.addComponent(cmpAvatarMatFeet);
-        nose.addComponent(cmpNoseMesh);
-        nose.addComponent(cmpNoseMat);
-        avatar.addComponent(cmpAvatar);
-        headMovement.addComponent(cmpAvatarMeshHead);
-        headMovement.addComponent(cmpAvatarMat);
-        headMovement.addComponent(cmpTransHead);
-        headMovement.addComponent(ears);
-        headMovement.appendChild(nose);
-        //avatarFarView.addComponent(cmpCamera);
-        avatar.appendChild(headMovement);
-        avatar.appendChild(avatarBody);
-        avatar.appendChild(avatarFeet);
-        graph.appendChild(avatar);
-    }
-    function computeJumpForce() {
-        if (avatarJumpForceUp) {
-            avatarJumpForce = avatarJumpForce + 2;
-            if (avatarJumpForce > 100)
-                avatarJumpForceUp = false;
-        }
-        else if (!avatarJumpForceUp) {
-            avatarJumpForce = avatarJumpForce - 2;
-            if (avatarJumpForce <= 0)
-                avatarJumpForceUp = true;
-        }
-        PrimaAbgabeLW.gameState.jumpStrength = avatarJumpForce;
-        //console.log(avatarJumpForce);
-    }
     function hndlJump(_event) {
-        if (_event.code == "Space") {
-            let jumpVector = new fc.Vector3(headMovement.mtxWorld.getZ().x * avatarJumpForce * 5, headMovement.mtxWorld.getZ().y + 1 * avatarJumpForce * 5, headMovement.mtxWorld.getZ().z * avatarJumpForce * 5);
-            cmpAvatar.applyForce(jumpVector);
-            avatarJumpForce = 0;
-            PrimaAbgabeLW.gameState.jumpStrength = avatarJumpForce;
-        }
+        avatar.hndlJump(_event);
     }
     function hndlCameraPerspective() {
-        console.log(thirdPerson);
         if (thirdPerson) {
             thirdPerson = false;
-            headMovement.addComponent(cmpCamera);
+            avatar.headMovement.addComponent(PrimaAbgabeLW.cmpCamera);
         }
         else if (!thirdPerson) {
             thirdPerson = true;
-            farCamera.addComponent(cmpCamera);
+            farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         }
     }
     /*
     PLATFORMS
     */
     function getPlattformDown() {
-        //console.log("!!! PLaforms down");
         for (let i = 1; i < allPlatforms.getChildren().length; i++) {
             let platformDown = allPlatforms.getChild(i);
             if (platformDown.up) {
@@ -311,7 +229,6 @@ var PrimaAbgabeLW;
                 platformDown.activePlatform = false;
                 platformDown.up = false;
             }
-            //console.log(platformDown.number + " : " + "platform up: " + platformDown.up + " : " + platformDown.mtxLocal.translation.y);
         }
         let newActive = allPlatforms.getChild(0);
         newActive.activePlatform = true;
@@ -350,21 +267,12 @@ var PrimaAbgabeLW;
             }
             allPlatforms.addChild(platformArray[i]);
             createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
-            /*if (i == platformArray.length - 1) {
-                //console.log("hi");
-                platformPos = computenextPlatformPosition(platformArray[i]);
-                platformCoordinates = computeNextPlatformCoordinates(platformPos, platformArray[i].mtxLocal.translation.y - 30 );
-                let aim: Aim = new Aim("platform" + i + 1, platformCoordinates, new fc.Vector3(5, 1, 5), false, i + 1, platformPos, false);
-                allPlatforms.addChild(aim);
-                createStopper(aim.position, aim.mtxLocal.translation, aim.number);
-            }*/
         }
     }
     function getPlatformUp(_platform) {
         _platform.mtxLocal.translateY(30 * _platform.number);
         _platform.activePlatform = true;
         _platform.up = true;
-        //console.log(_platform.number + " : " + "platform up: " + _platform.up + " : " + _platform.mtxLocal.translation.y);
         for (let i = 0; i < allStopper.getChildren().length; i++) {
             let stopper = allStopper.getChild(i);
             if (stopper.platformNumber == _platform.number)
