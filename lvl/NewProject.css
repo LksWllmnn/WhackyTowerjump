@@ -30,6 +30,16 @@ div>meter {
   height: 40px; 
 }
 
+label {
+  color: white;
+}
+
+input {
+  width: 30px;
+  color: white;
+  background-color: rgb(00,00,00,00);
+}
+
 
 
 #restart{

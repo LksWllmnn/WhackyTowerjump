@@ -5,19 +5,18 @@ var PrimaAbgabeLW;
     let graph;
     let allPlatforms;
     let allStopper;
+    let allDistractors;
     let viewport;
-    let thirdPerson = true;
-    let cIsPressed = false;
-    let kIsPressed = false;
+    let thirdPerson;
+    let cIsPressed;
+    let kIsPressed;
     let cmpAvatar;
-    let avatar;
     let ray;
     let farCamera;
     let transFarCamera;
     let iTriggerActivator;
     let mtxFarCam;
-    PrimaAbgabeLW.isOnPLatform = false;
-    let platformArray = new Array(10);
+    let platformArray;
     let forward;
     window.addEventListener("load", startInteractiveViewport);
     window.addEventListener("keyup", hndlJump);
@@ -35,27 +34,35 @@ var PrimaAbgabeLW;
     async function loadBaseData() {
         let baseJson = await fetch("../lvl/rootData.json");
         let baseData = await baseJson.json();
-        console.log(baseData);
         cIsPressed = baseData["cIsPressed"];
+        PrimaAbgabeLW.createNewPlatform = baseData["createNewPlatform"];
+        iTriggerActivator = baseData["iTriggerActivator"];
+        PrimaAbgabeLW.isOnPLatform = baseData["isOnPLatform"];
+        kIsPressed = baseData["kIsPressed"];
+        platformArray = new Array(baseData["platformArray"]);
+        PrimaAbgabeLW.gameState.score = baseData["score"];
+        thirdPerson = baseData["thirdPerson"];
+        PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
         hndlLoaded();
     }
     function hndlLoaded() {
         fc.Physics.settings.debugDraw = true;
-        PrimaAbgabeLW.gameState.score = 0;
         loadAllButtons();
         let canvas = document.querySelector("canvas");
         viewport = new FudgeCore.Viewport();
         PrimaAbgabeLW.cmpCamera = new FudgeCore.ComponentCamera();
         allPlatforms = new fc.Node("All Platforms");
         allStopper = new fc.Node("AllStopper");
+        allDistractors = new fc.Node("All Distractors");
         farCamera = new fc.Node("FarCamera");
         transFarCamera = new fc.ComponentTransform();
         mtxFarCam = new fc.Vector3(-20, 15, -20);
-        avatar = new PrimaAbgabeLW.Avatar("Avatar");
-        graph.addChild(avatar);
-        cmpAvatar = avatar.getComponent(fc.ComponentRigidbody);
+        PrimaAbgabeLW.avatar = new PrimaAbgabeLW.Avatar("Avatar");
+        graph.addChild(PrimaAbgabeLW.avatar);
+        cmpAvatar = PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody);
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
+        graph.addChild(allDistractors);
         transFarCamera.mtxLocal.translateY(15);
         transFarCamera.mtxLocal.translateX(-30);
         transFarCamera.mtxLocal.translateZ(-30);
@@ -65,19 +72,20 @@ var PrimaAbgabeLW;
         farCamera.addComponent(transFarCamera);
         farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         graph.addChild(farCamera);
-        PrimaAbgabeLW.gameState.lives = avatar.lives;
-        iTriggerActivator = 0;
-        PrimaAbgabeLW.triggerOn = false;
-        PrimaAbgabeLW.createNewPlatform = false;
+        PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
         createRigidbodys();
         createPlatform();
+        let distractor = new PrimaAbgabeLW.Distractor("Distractor", -1);
+        distractor.mtxLocal.translateX(1);
+        distractor.mtxLocal.translateY(1);
+        graph.appendChild(distractor);
         viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
         PrimaAbgabeLW.Hud.start();
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
         fc.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, renderAFrame);
         fc.AudioManager.default.listenTo(graph);
-        fc.AudioManager.default.listenWith(avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
+        fc.AudioManager.default.listenWith(PrimaAbgabeLW.avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
     }
     function loadAllButtons() {
         let restartButton = document.getElementById("restart");
@@ -104,28 +112,28 @@ var PrimaAbgabeLW;
     }
     function listenForKeys() {
         let _offset = 100 * fc.Loop.timeFrameReal / 1000;
-        forward = avatar.mtxWorld.getZ();
-        ray = fc.Physics.raycast(avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit) {
+        forward = PrimaAbgabeLW.avatar.mtxWorld.getZ();
+        ray = fc.Physics.raycast(PrimaAbgabeLW.avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, 2, 0));
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.D]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.D]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, -2, 0));
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.W]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.W]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, _offset));
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.S]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.S]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, -_offset));
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E])) {
-            avatar.headMovement.mtxLocal.rotateX(-2);
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E]) && !PrimaAbgabeLW.avatar.isParalyzed) {
+            PrimaAbgabeLW.avatar.headMovement.mtxLocal.rotateX(-2);
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R])) {
-            avatar.headMovement.mtxLocal.rotateX(2);
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R]) && !PrimaAbgabeLW.avatar.isParalyzed) {
+            PrimaAbgabeLW.avatar.headMovement.mtxLocal.rotateX(2);
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit) {
-            avatar.computeJumpForce();
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
+            PrimaAbgabeLW.avatar.computeJumpForce();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.C]) && !cIsPressed) {
             hndlCameraPerspective();
@@ -165,21 +173,21 @@ var PrimaAbgabeLW;
         }
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && PrimaAbgabeLW.isOnPLatform) {
             PrimaAbgabeLW.isOnPLatform = false;
-            avatar.lives--;
-            PrimaAbgabeLW.gameState.lives = avatar.lives;
+            PrimaAbgabeLW.avatar.lives--;
+            PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
             getPlattformDown();
         }
-        if (avatar.lives == 0) {
+        if (PrimaAbgabeLW.avatar.lives == 0) {
             console.log("you loose");
             restartGame();
         }
     }
     function computeFarCamHight() {
-        mtxFarCam.y = avatar.mtxWorld.translation.y + 15;
+        mtxFarCam.y = PrimaAbgabeLW.avatar.mtxWorld.translation.y + 15;
         transFarCamera.mtxLocal.translation = mtxFarCam;
     }
     function restartGame() {
-        avatar.removeComponent(avatar.getComponent(fc.ComponentRigidbody));
+        PrimaAbgabeLW.avatar.removeComponent(PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody));
         let lvl = graph.getChildrenByName("lvl")[0];
         for (let lvlElement of lvl.getChildren()) {
             if (lvlElement.name == "ground") {
@@ -191,22 +199,25 @@ var PrimaAbgabeLW;
             let platform = allPlatforms.getChild(i);
             platform.getChild(0).removeComponent(platform.getChild(0).getComponent(fc.ComponentRigidbody));
             platform.removeComponent(platform.getComponent(fc.ComponentRigidbody));
-            //aconsole.log(platform);
         }
         for (let i = 0; i < allStopper.getChildren().length; i++) {
             let stopper = allStopper.getChild(i);
             stopper.removeComponent(stopper.getComponent(fc.ComponentRigidbody));
         }
+        for (let i = 0; i < allDistractors.getChildren().length; i++) {
+            let distractor = allDistractors.getChild(i);
+            distractor.removeComponent(distractor.getComponent(fc.ComponentRigidbody));
+        }
         graph.removeAllChildren();
         graph = null;
     }
     function hndlJump(_event) {
-        avatar.hndlJump(_event);
+        PrimaAbgabeLW.avatar.hndlJump(_event);
     }
     function hndlCameraPerspective() {
         if (thirdPerson) {
             thirdPerson = false;
-            avatar.headMovement.addComponent(PrimaAbgabeLW.cmpCamera);
+            PrimaAbgabeLW.avatar.headMovement.addComponent(PrimaAbgabeLW.cmpCamera);
         }
         else if (!thirdPerson) {
             thirdPerson = true;
@@ -225,6 +236,11 @@ var PrimaAbgabeLW;
                     let stopper = allStopper.getChild(i);
                     if (stopper.platformNumber == platformDown.number)
                         stopper.mtxLocal.translateY(-10 * platformDown.number);
+                }
+                for (let i = 0; i < allDistractors.getChildren().length; i++) {
+                    let distractor = allDistractors.getChild(i);
+                    if (distractor.platformNumber == platformDown.number)
+                        distractor.mtxLocal.translateY(-30 * platformDown.number);
                 }
                 platformDown.activePlatform = false;
                 platformDown.up = false;
@@ -267,6 +283,14 @@ var PrimaAbgabeLW;
             }
             allPlatforms.addChild(platformArray[i]);
             createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
+            let ranDistractor = fc.Random.default.getRangeFloored(0, 2);
+            if (ranDistractor == 1) {
+                let distractor = new PrimaAbgabeLW.Distractor("Distractor " + i, i);
+                allDistractors.addChild(distractor);
+                distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
+                distractor.mtxLocal.translateZ(platformArray[i].mtxLocal.translation.z);
+                distractor.mtxLocal.translateY(platformArray[i].mtxLocal.translation.y + 1);
+            }
         }
     }
     function getPlatformUp(_platform) {
@@ -277,6 +301,11 @@ var PrimaAbgabeLW;
             let stopper = allStopper.getChild(i);
             if (stopper.platformNumber == _platform.number)
                 stopper.mtxLocal.translateY(10 * _platform.number);
+        }
+        for (let i = 0; i < allDistractors.getChildren().length; i++) {
+            let distractor = allDistractors.getChild(i);
+            if (distractor.platformNumber == _platform.number)
+                distractor.mtxLocal.translateY(30 * _platform.number);
         }
     }
     PrimaAbgabeLW.getPlatformUp = getPlatformUp;

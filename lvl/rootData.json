@@ -1,13 +1,11 @@
-[
-    {
-        "thirdPerson": "true",
-        "cIsPressed": "false",
-        "kIsPressed": "false",
-        "isOnPLatform": "false",
-        "platformArray": "5",
-        "iTriggerActivator": "0",
-        "triggerOn": "false",
-        "createNewPlatform" : "false",
-        "score": "0"
-    }
-]
+{
+    "thirdPerson": true,
+    "cIsPressed": false,
+    "kIsPressed": false,
+    "isOnPLatform": false,
+    "platformArray": 10,
+    "iTriggerActivator": 0,
+    "triggerOn": false,
+    "createNewPlatform" : false,
+    "score": 0
+}

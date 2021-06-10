@@ -8,7 +8,6 @@ namespace PrimaAbgabeLW {
         protected coodrinates: fc.Vector3;
         protected scale: fc.Vector3;
         
-
         protected mesh: fc.Mesh = new fc.MeshCube("Quad");
         protected materialStopper: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("GREEN", 0.1)));
         protected materialNormal: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("White", 0.9)));
@@ -18,7 +17,6 @@ namespace PrimaAbgabeLW {
             super(_name);
 
             this.scale = _scale;
-            
             this.cmpObjTransform = new fc.ComponentTransform();
             this.addComponent(this.cmpObjTransform);
             this.mtxLocal.translateX(_coordinates.x);

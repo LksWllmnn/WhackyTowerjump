@@ -2,33 +2,32 @@ namespace PrimaAbgabeLW {
     import fc = FudgeCore;
 
     interface BaseData {
-        cIsPressed: boolean;
-        createNewPlatform: boolean;
-        iTriggerActivator: number;
-        isOnPLatform: boolean;
-        kIsPressed: boolean;
-        platformArray: number;
-        score: number;
         thirdPerson: true;
+        cIsPressed: boolean;
+        kIsPressed: boolean;
+        isOnPLatform: boolean;
+        platformArray: number;
+        iTriggerActivator: number;
         triggerOn: boolean;
+        createNewPlatform: boolean;
+        score: number;
     }
-        
-
-    
     
     let graph: fc.Graph;
     let allPlatforms: fc.Node; 
     let allStopper: fc.Node; 
+    let allDistractors: fc.Node;
     
     let viewport: fc.Viewport;
     export let cmpCamera: fc.ComponentCamera;
-    
-    let thirdPerson: boolean = true;
-    let cIsPressed: boolean = false;
-    let kIsPressed: boolean = false;
+
+    let thirdPerson: boolean;
+    let cIsPressed: boolean;
+    let kIsPressed: boolean;
 
     let cmpAvatar: fc.ComponentRigidbody; 
-    let avatar: Avatar;
+    export let avatar: Avatar;
+
     let ray: fc.RayHitInfo;
 
     let farCamera: fc.Node; 
@@ -40,9 +39,9 @@ namespace PrimaAbgabeLW {
 
     let mtxFarCam: fc.Vector3;
 
-    export let isOnPLatform: boolean = false;
+    export let isOnPLatform: boolean;
 
-    let platformArray: Platform[] = new Array(10);
+    let platformArray: Platform[];
 
     let forward: fc.Vector3;
 
@@ -66,9 +65,15 @@ namespace PrimaAbgabeLW {
     async function loadBaseData(): Promise<void> {
         let baseJson: Response = await fetch("../lvl/rootData.json");
         let baseData: BaseData = await baseJson.json();
-        console.log(baseData);
         cIsPressed = baseData["cIsPressed"];
-        
+        createNewPlatform = baseData["createNewPlatform"];
+        iTriggerActivator = baseData["iTriggerActivator"];
+        isOnPLatform = baseData["isOnPLatform"];
+        kIsPressed = baseData["kIsPressed"];
+        platformArray = new Array(baseData["platformArray"]);
+        gameState.score = baseData["score"];
+        thirdPerson = baseData["thirdPerson"];
+        triggerOn = baseData["triggerOn"];
 
         hndlLoaded();
     }
@@ -76,7 +81,6 @@ namespace PrimaAbgabeLW {
     function hndlLoaded(): void {
         fc.Physics.settings.debugDraw = true;
 
-        gameState.score = 0;
         loadAllButtons();
 
         let canvas: HTMLCanvasElement = document.querySelector("canvas");
@@ -86,6 +90,7 @@ namespace PrimaAbgabeLW {
         
         allPlatforms = new fc.Node("All Platforms");
         allStopper = new fc.Node("AllStopper");
+        allDistractors = new fc.Node("All Distractors");
 
         farCamera = new fc.Node("FarCamera");
         transFarCamera = new fc.ComponentTransform();
@@ -97,6 +102,7 @@ namespace PrimaAbgabeLW {
 
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
+        graph.addChild(allDistractors);
         
         transFarCamera.mtxLocal.translateY(15);
         transFarCamera.mtxLocal.translateX(-30);
@@ -112,12 +118,13 @@ namespace PrimaAbgabeLW {
 
         gameState.lives = avatar.lives;
 
-        iTriggerActivator = 0;
-        triggerOn = false;
-        createNewPlatform = false;
-
         createRigidbodys();
         createPlatform();
+
+        let distractor: Distractor = new Distractor("Distractor", -1);
+        distractor.mtxLocal.translateX(1);
+        distractor.mtxLocal.translateY(1);
+        graph.appendChild(distractor);
 
         viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
 
@@ -140,6 +147,7 @@ namespace PrimaAbgabeLW {
     }
 
     function renderAFrame(): void {
+        
         if (graph == null) {
             startInteractiveViewport();
             return;
@@ -151,16 +159,13 @@ namespace PrimaAbgabeLW {
             triggerOn = true;
         } else {
             iTriggerActivator++;
-        }
-            
+        }   
         
         computeFarCamHight();
         listenForKeys();
         viewport.draw();
 
         fc.Physics.settings.debugDraw = true;
-
-        
     }
 
     function listenForKeys(): void {
@@ -170,31 +175,31 @@ namespace PrimaAbgabeLW {
 
         ray = fc.Physics.raycast(avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit && !avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, 2, 0));
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.D]) && ray.hit) {       
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.D]) && ray.hit && !avatar.isParalyzed) {       
             cmpAvatar.rotateBody(new fc.Vector3(0, -2, 0));
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.W]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.W ]) && ray.hit && !avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, _offset));
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.S]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.S]) && ray.hit && !avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, -_offset));
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E])) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E]) && !avatar.isParalyzed) {
             avatar.headMovement.mtxLocal.rotateX(-2);
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R])) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R]) && !avatar.isParalyzed) {
             avatar.headMovement.mtxLocal.rotateX(2);
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit) {
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit && !avatar.isParalyzed) {
             avatar.computeJumpForce();
         }
 
@@ -273,12 +278,16 @@ namespace PrimaAbgabeLW {
             let platform: Platform = allPlatforms.getChild(i) as Platform;
             platform.getChild(0).removeComponent(platform.getChild(0).getComponent(fc.ComponentRigidbody));
             platform.removeComponent(platform.getComponent(fc.ComponentRigidbody));
-            //aconsole.log(platform);
         }
 
         for (let i: number = 0; i < allStopper.getChildren().length; i++) {
             let stopper: Stopper = allStopper.getChild(i) as Stopper;
             stopper.removeComponent(stopper.getComponent(fc.ComponentRigidbody));
+        }
+
+        for (let i: number = 0; i < allDistractors.getChildren().length; i++) {
+            let distractor: Distractor = allDistractors.getChild(i) as Distractor;
+            distractor.removeComponent(distractor.getComponent(fc.ComponentRigidbody));
         }
         
         graph.removeAllChildren();
@@ -315,6 +324,12 @@ namespace PrimaAbgabeLW {
                     let stopper: Stopper = allStopper.getChild(i) as Stopper;
                     if (stopper.platformNumber == platformDown.number)
                         stopper.mtxLocal.translateY(-10 * platformDown.number);
+                }
+
+                for (let i: number = 0; i < allDistractors.getChildren().length; i++) {
+                    let distractor: Distractor = allDistractors.getChild(i) as Distractor;
+                    if (distractor.platformNumber == platformDown.number)
+                        distractor.mtxLocal.translateY(-30 * platformDown.number);
                 }
 
                 platformDown.activePlatform = false;
@@ -354,14 +369,21 @@ namespace PrimaAbgabeLW {
                 platformArray[i] = new Platform("platform" + i, platformCoordinates, new fc.Vector3(5, 1, 5), false, i, platformPos, false, false);
             }
 
-            
-
             if (i == 0) {
                 platformArray[i].activePlatform = true;
                 platformArray[i].up = true;
             }
             allPlatforms.addChild(platformArray[i]);
             createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
+
+            let ranDistractor: number = fc.Random.default.getRangeFloored(0, 2);
+            if (ranDistractor == 1) {
+                let distractor: Distractor = new Distractor("Distractor " + i, i);
+                allDistractors.addChild(distractor);
+                distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
+                distractor.mtxLocal.translateZ(platformArray[i].mtxLocal.translation.z);
+                distractor.mtxLocal.translateY(platformArray[i].mtxLocal.translation.y + 1);
+            }
         }
     }
 
@@ -375,6 +397,12 @@ namespace PrimaAbgabeLW {
             let stopper: Stopper = allStopper.getChild(i) as Stopper;
             if (stopper.platformNumber == _platform.number)
                 stopper.mtxLocal.translateY(10 * _platform.number);
+        }
+
+        for (let i: number = 0; i < allDistractors.getChildren().length; i++) {
+            let distractor: Distractor = allDistractors.getChild(i) as Distractor;
+            if (distractor.platformNumber == _platform.number)
+                distractor.mtxLocal.translateY(30 * _platform.number);
         }
     }
 

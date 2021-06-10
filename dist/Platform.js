@@ -32,7 +32,6 @@ var PrimaAbgabeLW;
         }
         hndTrigger(_event) {
             if (_event.cmpRigidbody.getContainer() == null) {
-                //console.log("touched with nothing");
                 return;
             }
             if (_event.cmpRigidbody.getContainer().name == "Avatar" && this.activePlatform && PrimaAbgabeLW.triggerOn) {

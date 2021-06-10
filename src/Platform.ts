@@ -44,7 +44,6 @@ namespace PrimaAbgabeLW {
 
         hndTrigger(_event: fc.EventPhysics): void {
             if (_event.cmpRigidbody.getContainer() == null) {
-                //console.log("touched with nothing");
                 return;
             }
 

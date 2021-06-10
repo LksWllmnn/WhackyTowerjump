@@ -17,11 +17,15 @@ namespace PrimaAbgabeLW {
             let collisionPoint: fc.Vector3 = this.rbComponent.collisions[0].getPosition();
 
             let collisionThing: fc.Node = this.rbComponent.collisions[0].getContainer();
-            let collisionThingRB: fc.ComponentRigidbody = collisionThing.getComponent(fc.ComponentRigidbody);
+            let collisionThingRB: fc.ComponentRigidbody = this.rbComponent.collisions[0];
 
             let impulseVector: fc.Vector3 = new fc.Vector3(collisionPoint.x - this.rbComponent.getPosition().x , collisionPoint.y - this.rbComponent.getPosition().y, collisionPoint.z - this.rbComponent.getPosition().z);
             let normImpulseVector: fc.Vector3 = fc.Vector3.NORMALIZATION(impulseVector);
 
+            if (collisionThing == avatar) {
+                avatar.isParalyzed = true;
+                avatar.recover();
+            }
             collisionThingRB.applyLinearImpulse(new fc.Vector3(normImpulseVector.x * 10, normImpulseVector.y * 10, normImpulseVector.z * 10));
           }
 

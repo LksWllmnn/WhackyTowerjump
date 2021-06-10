@@ -5,8 +5,9 @@ namespace PrimaAbgabeLW {
         public headMovement: fc.Node = new fc.Node("Head");
         public cmpAvatar: fc.ComponentRigidbody = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
         public lives: number = 3;
+        public isParalyzed: boolean = false;
         
-        private avatarMat: fc.Material = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("RED")));
+        private avatarMat: fc.Material = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("Green")));
         private ears: fc.ComponentAudioListener = new fc.ComponentAudioListener();
         private cmpTransHead: fc.ComponentTransform = new fc.ComponentTransform();
         private avatarBody: fc.Node = new fc.Node("AvatarBody");
@@ -92,6 +93,14 @@ namespace PrimaAbgabeLW {
                 this.jumpForce = 0;
                 gameState.jumpStrength = this.jumpForce;
             } 
+        }
+
+        public recover(): void {
+            fc.Time.game.setTimer(500, 1, this.isRecovered.bind(this));
+        }
+
+        private isRecovered(): void {
+            this.isParalyzed = false;
         }
 
     } 

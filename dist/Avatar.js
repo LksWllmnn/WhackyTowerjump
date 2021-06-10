@@ -8,7 +8,8 @@ var PrimaAbgabeLW;
             this.headMovement = new fc.Node("Head");
             this.cmpAvatar = new fc.ComponentRigidbody(1, fc.PHYSICS_TYPE.DYNAMIC, fc.COLLIDER_TYPE.CAPSULE, fc.PHYSICS_GROUP.GROUP_2);
             this.lives = 3;
-            this.avatarMat = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("RED")));
+            this.isParalyzed = false;
+            this.avatarMat = new fc.Material("AvatarMaterial", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("Green")));
             this.ears = new fc.ComponentAudioListener();
             this.cmpTransHead = new fc.ComponentTransform();
             this.avatarBody = new fc.Node("AvatarBody");
@@ -77,6 +78,12 @@ var PrimaAbgabeLW;
                 this.jumpForce = 0;
                 PrimaAbgabeLW.gameState.jumpStrength = this.jumpForce;
             }
+        }
+        recover() {
+            fc.Time.game.setTimer(500, 1, this.isRecovered.bind(this));
+        }
+        isRecovered() {
+            this.isParalyzed = false;
         }
     }
     PrimaAbgabeLW.Avatar = Avatar;
