@@ -33,15 +33,27 @@
 <canvas class="fullscreen">
 </canvas>
 
-    <div>
+    <div id="hud">
+        <label for="highscore">Highscore</label>
+        <input type=number key="highscore" id="highscore" disabled/>
         <label for="score">Score</label>
         <input type=number key="score" id="score" disabled/>
         <label for="lives">Lives</label>
         <input type=number key="lives" id="lives" disabled/>
-        <meter type=number key="jumpStrength" min="0" max="100" disabled></meter> 
+        <meter id="jump" type=number key="jumpStrength" min="0" max="100" disabled></meter> 
     </div>
 
     <button id="restart">Restart Game</button>
-    <button id="options">Options</button>
+    <button id="optionsButton">Pause</button>
+
+    <div id="options">
+        <h2>Welcome to WhackyTowerjump</h2>
+        <label for="plattformCount">Plattform Value</label>
+        <input id="plattformCount" type="range" min="3" max="10" value="7"></input>
+        <button id="return">Return to Game</button>
+        <button id="start">Start Game</button>
+
+        <p id="info"></p>
+    </div>
 </body>
 </html>

@@ -11,7 +11,17 @@ namespace PrimaAbgabeLW {
         triggerOn: boolean;
         createNewPlatform: boolean;
         score: number;
+        audioIsRunning: boolean;
     }
+
+    enum GamePhase {
+        Option,
+        Running,
+        Won,
+        Lost
+    }
+
+    let activePhase: GamePhase;
     
     let graph: fc.Graph;
     let allPlatforms: fc.Node; 
@@ -45,14 +55,12 @@ namespace PrimaAbgabeLW {
 
     let forward: fc.Vector3;
 
+    let audioIsRunning: boolean;
+
     window.addEventListener("load", startInteractiveViewport);
 
     window.addEventListener("keyup", hndlJump);
 
-    let restartButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("restart");
-    if (restartButton) {
-        restartButton.addEventListener("click", restartGame);
-    }
 
     async function startInteractiveViewport(): Promise <void> {
         await fc.Project.loadResourcesFromHTML();
@@ -74,6 +82,9 @@ namespace PrimaAbgabeLW {
         gameState.score = baseData["score"];
         thirdPerson = baseData["thirdPerson"];
         triggerOn = baseData["triggerOn"];
+        audioIsRunning = baseData["audioIsRunning"];
+
+        gameState.highscore = +localStorage.getItem("whackyHighScore");
 
         hndlLoaded();
     }
@@ -97,6 +108,7 @@ namespace PrimaAbgabeLW {
         mtxFarCam = new fc.Vector3(-20, 15, -20);
 
         avatar = new Avatar("Avatar");
+        //avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
         graph.addChild(avatar);
         cmpAvatar = avatar.getComponent(fc.ComponentRigidbody);
 
@@ -118,8 +130,9 @@ namespace PrimaAbgabeLW {
 
         gameState.lives = avatar.lives;
 
-        createRigidbodys();
         createPlatform();
+        createRigidbodys();
+        
 
         let distractor: Distractor = new Distractor("Distractor", -1);
         distractor.mtxLocal.translateX(1);
@@ -129,6 +142,8 @@ namespace PrimaAbgabeLW {
         viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
 
         Hud.start();
+
+        //activePhase = GamePhase.Option;
        
         fc.Physics.adjustTransforms(graph, true);
 
@@ -144,17 +159,25 @@ namespace PrimaAbgabeLW {
         if (restartButton) {
             restartButton.addEventListener("click", restartGame);
         }
+        let pauseButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("optionsButton");
+        if (pauseButton) {
+            pauseButton.addEventListener("click", hndlPauseReturn);
+        }
+
+        let startButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("start");
+        if (startButton) {
+            startButton.addEventListener("click", hndlStart);
+        }
+
+        let returnButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
+        if (returnButton) {
+            returnButton.addEventListener("click", hndlReturn);
+        }
     }
 
     function renderAFrame(): void {
-        
-        if (graph == null) {
-            startInteractiveViewport();
-            return;
-        }
-        
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
-        
+        //console.log(activePhase);
         if (iTriggerActivator > 15) {
             triggerOn = true;
         } else {
@@ -162,10 +185,28 @@ namespace PrimaAbgabeLW {
         }   
         
         computeFarCamHight();
-        listenForKeys();
+        
         viewport.draw();
 
-        fc.Physics.settings.debugDraw = true;
+        switch (activePhase) {
+            case GamePhase.Option: 
+                return;
+                break;
+            case GamePhase.Won:
+                return;
+                break;
+            case GamePhase.Lost:
+                activePhase = GamePhase.Option;
+                hndlOptionsStart();
+                break;
+            case GamePhase.Running:
+                break;
+            default:
+                activePhase = GamePhase.Option;
+                hndlOptionsStart();
+                break;
+        }
+        listenForKeys();
     }
 
     function listenForKeys(): void {
@@ -218,6 +259,13 @@ namespace PrimaAbgabeLW {
         if (!fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && kIsPressed) {
             kIsPressed = false;
         }
+
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
+            let backgroundAudio: fc.Audio = new fc.Audio("../lvl/audio/Feels - Patrick Patrikios.mp3");
+            avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
+            console.log("Audio sollte jetzt an sein");
+            audioIsRunning = true;
+        }
         
     }
 
@@ -253,6 +301,7 @@ namespace PrimaAbgabeLW {
         }
         
         if (avatar.lives == 0) {
+            activePhase = GamePhase.Lost;
             console.log("you loose");
             restartGame();
         }
@@ -264,6 +313,15 @@ namespace PrimaAbgabeLW {
     }
 
     function restartGame(): void {
+        if (gameState.score > +localStorage.getItem("whackyHighScore") && localStorage.getItem("whackyHighScore") != null) {
+            localStorage.setItem("whackyHighScore", "" + gameState.score);
+        }
+        clearAll();
+        activePhase = GamePhase.Lost;
+    }
+
+    function clearAll(): void {
+        console.log(graph);
         avatar.removeComponent(avatar.getComponent(fc.ComponentRigidbody));
             
         let lvl: fc.Node = graph.getChildrenByName("lvl")[0];
@@ -289,7 +347,7 @@ namespace PrimaAbgabeLW {
             let distractor: Distractor = allDistractors.getChild(i) as Distractor;
             distractor.removeComponent(distractor.getComponent(fc.ComponentRigidbody));
         }
-        
+
         graph.removeAllChildren();
         graph = null;
     }
@@ -345,6 +403,7 @@ namespace PrimaAbgabeLW {
         if (_oldIndex + 1 < platformArray.length) {
             getPlatformUp(allPlatforms.getChild(_oldIndex + 1) as Platform);
         } else {
+            activePhase = GamePhase.Won;
             alert("You Won!!");
             restartGame();
         }
@@ -530,5 +589,82 @@ namespace PrimaAbgabeLW {
         if (secondStopper) {
             allStopper.addChild(newStopper2);
         }   
+    }
+
+    function createAudioComponentBackground(_backgroundAudio: fc.Audio): fc.ComponentAudio {
+        let cmpAudio: fc.ComponentAudio;
+        cmpAudio = new fc.ComponentAudio(_backgroundAudio, true);
+        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_OUTER_ANGLE, 360);
+        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_INNER_ANGLE, 30);
+        cmpAudio.activate(cmpAudio.isActive);
+        cmpAudio.play(true);
+        return cmpAudio;
+    }
+
+    function hndlOptionsStart(): void {
+        let options: HTMLDivElement = <HTMLDivElement>document.getElementById("options");
+        if (options) {
+            options.style.display = "block";
+        }
+        let start: HTMLButtonElement = <HTMLButtonElement>document.getElementById("start");
+        if (start) {
+            start.style.display = "block";
+        }
+        let returnButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
+        if (returnButton) {
+            returnButton.style.display = "none";
+        }
+        console.log("options Start");
+    }
+
+    function hndlPauseReturn(): void {
+        let options: HTMLDivElement = <HTMLDivElement>document.getElementById("options");
+        if (options) {
+            options.style.display = "block";
+        }
+        let restart: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
+        if (restart) {
+            restart.style.display = "block";
+        }
+        let start: HTMLButtonElement = <HTMLButtonElement>document.getElementById("start");
+        if (start) {
+            start.style.display = "none";
+        }
+        activePhase = GamePhase.Option;
+        console.log("options Return");
+    }
+
+    function hndlStart(): void {
+        let options: HTMLDivElement = <HTMLDivElement>document.getElementById("options");
+        let start: HTMLButtonElement = <HTMLButtonElement>document.getElementById("start");
+        if (options) {
+            options.style.display = "none";
+        }
+        if (start) {
+            start.style.display = "none";
+        }
+        console.log("Start");
+        activePhase = GamePhase.Running;
+        
+        try {
+            clearAll();
+        } catch {
+            console.log("sauber?");
+        }
+        
+
+        startInteractiveViewport();
+    }
+
+    function hndlReturn(): void {
+        let options: HTMLDivElement = <HTMLDivElement>document.getElementById("options");
+        let returnButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
+        if (options) {
+            options.style.display = "none";
+        }
+        if (returnButton) {
+            returnButton.style.display = "none";
+        }
+        activePhase = GamePhase.Running;
     }
 }

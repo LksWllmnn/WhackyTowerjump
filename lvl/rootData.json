@@ -7,5 +7,6 @@
     "iTriggerActivator": 0,
     "triggerOn": false,
     "createNewPlatform" : false,
-    "score": 0
+    "score": 0,
+    "audioIsRunning": false
 }

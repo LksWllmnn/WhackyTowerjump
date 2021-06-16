@@ -2,6 +2,14 @@
 var PrimaAbgabeLW;
 (function (PrimaAbgabeLW) {
     var fc = FudgeCore;
+    let GamePhase;
+    (function (GamePhase) {
+        GamePhase[GamePhase["Option"] = 0] = "Option";
+        GamePhase[GamePhase["Running"] = 1] = "Running";
+        GamePhase[GamePhase["Won"] = 2] = "Won";
+        GamePhase[GamePhase["Lost"] = 3] = "Lost";
+    })(GamePhase || (GamePhase = {}));
+    let activePhase;
     let graph;
     let allPlatforms;
     let allStopper;
@@ -18,12 +26,9 @@ var PrimaAbgabeLW;
     let mtxFarCam;
     let platformArray;
     let forward;
+    let audioIsRunning;
     window.addEventListener("load", startInteractiveViewport);
     window.addEventListener("keyup", hndlJump);
-    let restartButton = document.getElementById("restart");
-    if (restartButton) {
-        restartButton.addEventListener("click", restartGame);
-    }
     async function startInteractiveViewport() {
         await fc.Project.loadResourcesFromHTML();
         let jsonGraph = fc.Project.resources["Graph|2021-05-19T16:31:42.747Z|51435"];
@@ -43,6 +48,8 @@ var PrimaAbgabeLW;
         PrimaAbgabeLW.gameState.score = baseData["score"];
         thirdPerson = baseData["thirdPerson"];
         PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
+        audioIsRunning = baseData["audioIsRunning"];
+        PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
         hndlLoaded();
     }
     function hndlLoaded() {
@@ -58,6 +65,7 @@ var PrimaAbgabeLW;
         transFarCamera = new fc.ComponentTransform();
         mtxFarCam = new fc.Vector3(-20, 15, -20);
         PrimaAbgabeLW.avatar = new PrimaAbgabeLW.Avatar("Avatar");
+        //avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
         graph.addChild(PrimaAbgabeLW.avatar);
         cmpAvatar = PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody);
         graph.addChild(allPlatforms);
@@ -73,14 +81,15 @@ var PrimaAbgabeLW;
         farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         graph.addChild(farCamera);
         PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
-        createRigidbodys();
         createPlatform();
+        createRigidbodys();
         let distractor = new PrimaAbgabeLW.Distractor("Distractor", -1);
         distractor.mtxLocal.translateX(1);
         distractor.mtxLocal.translateY(1);
         graph.appendChild(distractor);
         viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
         PrimaAbgabeLW.Hud.start();
+        //activePhase = GamePhase.Option;
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
         fc.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, renderAFrame);
@@ -92,13 +101,22 @@ var PrimaAbgabeLW;
         if (restartButton) {
             restartButton.addEventListener("click", restartGame);
         }
+        let pauseButton = document.getElementById("optionsButton");
+        if (pauseButton) {
+            pauseButton.addEventListener("click", hndlPauseReturn);
+        }
+        let startButton = document.getElementById("start");
+        if (startButton) {
+            startButton.addEventListener("click", hndlStart);
+        }
+        let returnButton = document.getElementById("return");
+        if (returnButton) {
+            returnButton.addEventListener("click", hndlReturn);
+        }
     }
     function renderAFrame() {
-        if (graph == null) {
-            startInteractiveViewport();
-            return;
-        }
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
+        //console.log(activePhase);
         if (iTriggerActivator > 15) {
             PrimaAbgabeLW.triggerOn = true;
         }
@@ -106,9 +124,26 @@ var PrimaAbgabeLW;
             iTriggerActivator++;
         }
         computeFarCamHight();
-        listenForKeys();
         viewport.draw();
-        fc.Physics.settings.debugDraw = true;
+        switch (activePhase) {
+            case GamePhase.Option:
+                return;
+                break;
+            case GamePhase.Won:
+                return;
+                break;
+            case GamePhase.Lost:
+                activePhase = GamePhase.Option;
+                hndlOptionsStart();
+                break;
+            case GamePhase.Running:
+                break;
+            default:
+                activePhase = GamePhase.Option;
+                hndlOptionsStart();
+                break;
+        }
+        listenForKeys();
     }
     function listenForKeys() {
         let _offset = 100 * fc.Loop.timeFrameReal / 1000;
@@ -149,6 +184,12 @@ var PrimaAbgabeLW;
         if (!fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && kIsPressed) {
             kIsPressed = false;
         }
+        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
+            let backgroundAudio = new fc.Audio("../lvl/audio/Feels - Patrick Patrikios.mp3");
+            PrimaAbgabeLW.avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
+            console.log("Audio sollte jetzt an sein");
+            audioIsRunning = true;
+        }
     }
     function createRigidbodys() {
         let lvl = graph.getChildrenByName("lvl")[0];
@@ -178,6 +219,7 @@ var PrimaAbgabeLW;
             getPlattformDown();
         }
         if (PrimaAbgabeLW.avatar.lives == 0) {
+            activePhase = GamePhase.Lost;
             console.log("you loose");
             restartGame();
         }
@@ -187,6 +229,14 @@ var PrimaAbgabeLW;
         transFarCamera.mtxLocal.translation = mtxFarCam;
     }
     function restartGame() {
+        if (PrimaAbgabeLW.gameState.score > +localStorage.getItem("whackyHighScore") && localStorage.getItem("whackyHighScore") != null) {
+            localStorage.setItem("whackyHighScore", "" + PrimaAbgabeLW.gameState.score);
+        }
+        clearAll();
+        activePhase = GamePhase.Lost;
+    }
+    function clearAll() {
+        console.log(graph);
         PrimaAbgabeLW.avatar.removeComponent(PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody));
         let lvl = graph.getChildrenByName("lvl")[0];
         for (let lvlElement of lvl.getChildren()) {
@@ -254,6 +304,7 @@ var PrimaAbgabeLW;
             getPlatformUp(allPlatforms.getChild(_oldIndex + 1));
         }
         else {
+            activePhase = GamePhase.Won;
             alert("You Won!!");
             restartGame();
         }
@@ -422,6 +473,76 @@ var PrimaAbgabeLW;
         if (secondStopper) {
             allStopper.addChild(newStopper2);
         }
+    }
+    function createAudioComponentBackground(_backgroundAudio) {
+        let cmpAudio;
+        cmpAudio = new fc.ComponentAudio(_backgroundAudio, true);
+        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_OUTER_ANGLE, 360);
+        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_INNER_ANGLE, 30);
+        cmpAudio.activate(cmpAudio.isActive);
+        cmpAudio.play(true);
+        return cmpAudio;
+    }
+    function hndlOptionsStart() {
+        let options = document.getElementById("options");
+        if (options) {
+            options.style.display = "block";
+        }
+        let start = document.getElementById("start");
+        if (start) {
+            start.style.display = "block";
+        }
+        let returnButton = document.getElementById("return");
+        if (returnButton) {
+            returnButton.style.display = "none";
+        }
+        console.log("options Start");
+    }
+    function hndlPauseReturn() {
+        let options = document.getElementById("options");
+        if (options) {
+            options.style.display = "block";
+        }
+        let restart = document.getElementById("return");
+        if (restart) {
+            restart.style.display = "block";
+        }
+        let start = document.getElementById("start");
+        if (start) {
+            start.style.display = "none";
+        }
+        activePhase = GamePhase.Option;
+        console.log("options Return");
+    }
+    function hndlStart() {
+        let options = document.getElementById("options");
+        let start = document.getElementById("start");
+        if (options) {
+            options.style.display = "none";
+        }
+        if (start) {
+            start.style.display = "none";
+        }
+        console.log("Start");
+        activePhase = GamePhase.Running;
+        try {
+            clearAll();
+        }
+        catch {
+            console.log("sauber?");
+        }
+        startInteractiveViewport();
+    }
+    function hndlReturn() {
+        let options = document.getElementById("options");
+        let returnButton = document.getElementById("return");
+        if (options) {
+            options.style.display = "none";
+        }
+        if (returnButton) {
+            returnButton.style.display = "none";
+        }
+        activePhase = GamePhase.Running;
     }
 })(PrimaAbgabeLW || (PrimaAbgabeLW = {}));
 //# sourceMappingURL=Main.js.map

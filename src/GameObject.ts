@@ -9,8 +9,8 @@ namespace PrimaAbgabeLW {
         protected scale: fc.Vector3;
         
         protected mesh: fc.Mesh = new fc.MeshCube("Quad");
-        protected materialStopper: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("GREEN", 0.1)));
-        protected materialNormal: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("White", 0.9)));
+        protected materialStopper: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("GREEN", 0.5)));
+        protected materialNormal: fc.Material = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("White", 1)));
         protected cmpMesh: fc.ComponentMesh;
 
         constructor(_name: string, _coordinates: fc.Vector3, _scale: fc.Vector3, _stopper: boolean) {

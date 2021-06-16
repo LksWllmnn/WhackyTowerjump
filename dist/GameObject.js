@@ -6,8 +6,8 @@ var PrimaAbgabeLW;
         constructor(_name, _coordinates, _scale, _stopper) {
             super(_name);
             this.mesh = new fc.MeshCube("Quad");
-            this.materialStopper = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("GREEN", 0.1)));
-            this.materialNormal = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("White", 0.9)));
+            this.materialStopper = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("GREEN", 0.5)));
+            this.materialNormal = new fc.Material("GREEN", fc.ShaderFlat, new fc.CoatColored(fc.Color.CSS("White", 1)));
             this.scale = _scale;
             this.cmpObjTransform = new fc.ComponentTransform();
             this.addComponent(this.cmpObjTransform);

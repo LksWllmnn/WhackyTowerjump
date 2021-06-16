@@ -3,6 +3,7 @@ namespace PrimaAbgabeLW {
     import fc = FudgeCore;
 
     class GameState extends fc.Mutable {
+        public highscore: number;
         public score: number = 0;
         public jumpStrength: number = 0;
         public lives: number = 0;

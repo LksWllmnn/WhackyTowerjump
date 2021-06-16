@@ -15,14 +15,14 @@ canvas.fullscreen {
   height: 100vh; 
 }
 
-div {
+#hud {
   position: absolute;
   top: 5vh;
   left: 20px;
   width: 100vw;
 }
 
-div>meter {
+#jump {
   position: absolute;
   top: 85vh;
   left: 25vw;
@@ -42,14 +42,34 @@ input {
 
 
 
+#return{
+  display: none;
+  position: absolute;
+}
+
 #restart{
   position: absolute;
   top: 200px;
   left: 20px;
 }
 
-#options{
+#optionsButton{
   position: absolute;
   top: 300px;
   left: 20px;
+}
+
+#options{
+  display: show;
+  position: absolute;
+  background-color: rgba(0, 128, 128, 0.521);
+  z-index: 2;
+  width: 100vw; 
+  height: 100vh;
+  top: 0px;
+  left: 0px;
+}
+
+#plattformCount {
+  width: 100px;
 }

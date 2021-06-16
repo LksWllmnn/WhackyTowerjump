@@ -31,7 +31,6 @@ namespace PrimaAbgabeLW {
         constructor(_name: string) {
             super(_name);
             this.cmpTransHead.mtxLocal.translateY(0.5);
-            this.cmpTransHead.mtxLocal.translateZ(0);
             
             this.cmpAvatarMeshBody.mtxPivot.scaleX(0.75);
             this.cmpAvatarMeshBody.mtxPivot.scaleZ(0.75);
@@ -47,8 +46,8 @@ namespace PrimaAbgabeLW {
             this.cmpAvatar.rotationInfluenceFactor = fc.Vector3.ZERO();
             this.cmpAvatar.friction = 1;
 
-            cmpCamera.mtxPivot.translateY(1);
-            cmpCamera.mtxPivot.translateZ(-5);
+            cmpCamera.mtxPivot.translateY(0);
+            cmpCamera.mtxPivot.translateZ(0);
 
             this.addComponent(new fc.ComponentTransform(fc.Matrix4x4.TRANSLATION(fc.Vector3.Y(5))));
 
