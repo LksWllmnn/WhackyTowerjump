@@ -66,6 +66,7 @@ var PrimaAbgabeLW;
         hndlLoaded();
     }
     function hndlLoaded() {
+        console.log(localStorage.getItem("whackyHighScore"));
         fc.Physics.settings.debugDraw = true;
         loadAllButtons();
         let canvas = document.querySelector("canvas");

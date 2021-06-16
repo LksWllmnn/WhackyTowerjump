@@ -105,6 +105,7 @@ namespace PrimaAbgabeLW {
     }
 
     function hndlLoaded(): void {
+        console.log(localStorage.getItem("whackyHighScore"));
         fc.Physics.settings.debugDraw = true;
 
         loadAllButtons();
