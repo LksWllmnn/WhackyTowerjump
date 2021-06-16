@@ -55,7 +55,12 @@ var PrimaAbgabeLW;
         thirdPerson = baseData["thirdPerson"];
         PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
         PrimaAbgabeLW.audioIsRunning = baseData["audioIsRunning"];
-        PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
+        if (localStorage.getItem("whackyHighScore") != null) {
+            PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
+        }
+        else {
+            PrimaAbgabeLW.gameState.highscore = 0;
+        }
         distractorAudio = new fc.Audio("../lvl/audio/Peng.mp3");
         jumpAudio = new fc.Audio("../lvl/audio/gotShot.mp3");
         hndlLoaded();

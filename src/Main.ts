@@ -91,7 +91,12 @@ namespace PrimaAbgabeLW {
         triggerOn = baseData["triggerOn"];
         audioIsRunning = baseData["audioIsRunning"];
 
-        gameState.highscore = +localStorage.getItem("whackyHighScore");
+        if (localStorage.getItem("whackyHighScore") != null) {
+            gameState.highscore = +localStorage.getItem("whackyHighScore");
+        } else {
+            gameState.highscore = 0;
+        }
+        
 
         distractorAudio = new fc.Audio("../lvl/audio/Peng.mp3");
         jumpAudio = new fc.Audio("../lvl/audio/gotShot.mp3");
@@ -359,7 +364,7 @@ namespace PrimaAbgabeLW {
     function restartGame(): void {
         if (gameState.score > +localStorage.getItem("whackyHighScore") && localStorage.getItem("whackyHighScore") != null) {
             localStorage.setItem("whackyHighScore", "" + gameState.score);
-        }
+        } 
         clearAll();
         activePhase = GamePhase.Lost;
     }
