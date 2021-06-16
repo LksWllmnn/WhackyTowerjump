@@ -11,6 +11,9 @@ var PrimaAbgabeLW;
                 let collisionThingRB = this.rbComponent.collisions[0];
                 let impulseVector = new fc.Vector3(collisionPoint.x - this.rbComponent.getPosition().x, collisionPoint.y - this.rbComponent.getPosition().y, collisionPoint.z - this.rbComponent.getPosition().z);
                 let normImpulseVector = fc.Vector3.NORMALIZATION(impulseVector);
+                if (PrimaAbgabeLW.audioIsRunning) {
+                    this.getContainer().getComponent(fc.ComponentAudio).play(true);
+                }
                 if (collisionThing == PrimaAbgabeLW.avatar) {
                     PrimaAbgabeLW.avatar.isParalyzed = true;
                     PrimaAbgabeLW.avatar.recover();

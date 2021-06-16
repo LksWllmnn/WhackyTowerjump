@@ -76,6 +76,9 @@ var PrimaAbgabeLW;
                 this.cmpAvatar.applyForce(jumpVector);
                 this.jumpForce = 0;
                 PrimaAbgabeLW.gameState.jumpStrength = this.jumpForce;
+                if (PrimaAbgabeLW.audioIsRunning) {
+                    this.getComponent(fc.ComponentAudio).play(true);
+                }
             }
         }
         recover() {

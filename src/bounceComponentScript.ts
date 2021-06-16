@@ -22,6 +22,11 @@ namespace PrimaAbgabeLW {
             let impulseVector: fc.Vector3 = new fc.Vector3(collisionPoint.x - this.rbComponent.getPosition().x , collisionPoint.y - this.rbComponent.getPosition().y, collisionPoint.z - this.rbComponent.getPosition().z);
             let normImpulseVector: fc.Vector3 = fc.Vector3.NORMALIZATION(impulseVector);
 
+
+            if (audioIsRunning) {
+                this.getContainer().getComponent(fc.ComponentAudio).play(true);
+            }
+
             if (collisionThing == avatar) {
                 avatar.isParalyzed = true;
                 avatar.recover();

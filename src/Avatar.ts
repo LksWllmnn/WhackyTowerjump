@@ -91,6 +91,9 @@ namespace PrimaAbgabeLW {
                 this.cmpAvatar.applyForce(jumpVector);
                 this.jumpForce = 0;
                 gameState.jumpStrength = this.jumpForce;
+                if (audioIsRunning) {
+                    this.getComponent(fc.ComponentAudio).play(true);
+                }
             } 
         }
 

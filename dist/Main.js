@@ -20,13 +20,16 @@ var PrimaAbgabeLW;
     let kIsPressed;
     let cmpAvatar;
     let ray;
+    let farEars;
     let farCamera;
     let transFarCamera;
     let iTriggerActivator;
     let mtxFarCam;
     let platformArray;
     let forward;
-    let audioIsRunning;
+    let distractorAudio;
+    let jumpAudio;
+    let cmpBackgroundAudio;
     window.addEventListener("load", startInteractiveViewport);
     window.addEventListener("keyup", hndlJump);
     async function startInteractiveViewport() {
@@ -44,12 +47,17 @@ var PrimaAbgabeLW;
         iTriggerActivator = baseData["iTriggerActivator"];
         PrimaAbgabeLW.isOnPLatform = baseData["isOnPLatform"];
         kIsPressed = baseData["kIsPressed"];
-        platformArray = new Array(baseData["platformArray"]);
+        let platformValue = document.getElementById("plattformCount");
+        if (platformValue) {
+            platformValue.value = "" + baseData["platformArray"];
+        }
         PrimaAbgabeLW.gameState.score = baseData["score"];
         thirdPerson = baseData["thirdPerson"];
         PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
-        audioIsRunning = baseData["audioIsRunning"];
+        PrimaAbgabeLW.audioIsRunning = baseData["audioIsRunning"];
         PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
+        distractorAudio = new fc.Audio("../lvl/audio/Peng.mp3");
+        jumpAudio = new fc.Audio("../lvl/audio/gotShot.mp3");
         hndlLoaded();
     }
     function hndlLoaded() {
@@ -61,13 +69,14 @@ var PrimaAbgabeLW;
         allPlatforms = new fc.Node("All Platforms");
         allStopper = new fc.Node("AllStopper");
         allDistractors = new fc.Node("All Distractors");
+        farEars = new fc.ComponentAudioListener();
         farCamera = new fc.Node("FarCamera");
         transFarCamera = new fc.ComponentTransform();
         mtxFarCam = new fc.Vector3(-20, 15, -20);
         PrimaAbgabeLW.avatar = new PrimaAbgabeLW.Avatar("Avatar");
-        //avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
         graph.addChild(PrimaAbgabeLW.avatar);
         cmpAvatar = PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody);
+        PrimaAbgabeLW.avatar.addComponent(componentAudioJump());
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
         graph.addChild(allDistractors);
@@ -83,18 +92,19 @@ var PrimaAbgabeLW;
         PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
         createPlatform();
         createRigidbodys();
+        let backgroundAudio = new fc.Audio("../lvl/audio/Feels - Patrick Patrikios.mp3");
+        cmpBackgroundAudio = createAudioComponentBackground(backgroundAudio);
         let distractor = new PrimaAbgabeLW.Distractor("Distractor", -1);
         distractor.mtxLocal.translateX(1);
         distractor.mtxLocal.translateY(1);
-        graph.appendChild(distractor);
+        allDistractors.appendChild(distractor);
         viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
         PrimaAbgabeLW.Hud.start();
-        //activePhase = GamePhase.Option;
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
         fc.Loop.addEventListener("loopFrame" /* LOOP_FRAME */, renderAFrame);
         fc.AudioManager.default.listenTo(graph);
-        fc.AudioManager.default.listenWith(PrimaAbgabeLW.avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
+        fc.AudioManager.default.listenWith(farEars);
     }
     function loadAllButtons() {
         let restartButton = document.getElementById("restart");
@@ -124,6 +134,7 @@ var PrimaAbgabeLW;
             iTriggerActivator++;
         }
         computeFarCamHight();
+        ƒ.AudioManager.default.update();
         viewport.draw();
         switch (activePhase) {
             case GamePhase.Option:
@@ -148,48 +159,79 @@ var PrimaAbgabeLW;
     function listenForKeys() {
         let _offset = 100 * fc.Loop.timeFrameReal / 1000;
         forward = PrimaAbgabeLW.avatar.mtxWorld.getZ();
-        ray = fc.Physics.raycast(PrimaAbgabeLW.avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
+        try {
+            ray = fc.Physics.raycast(PrimaAbgabeLW.avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
+        }
+        catch {
+            console.log("no ray for you now");
+        }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, 2, 0));
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.D]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, -2, 0));
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.W]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, _offset));
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.S]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.setVelocity(fc.Vector3.SCALE(forward, -_offset));
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.E]) && !PrimaAbgabeLW.avatar.isParalyzed) {
             PrimaAbgabeLW.avatar.headMovement.mtxLocal.rotateX(-2);
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.R]) && !PrimaAbgabeLW.avatar.isParalyzed) {
             PrimaAbgabeLW.avatar.headMovement.mtxLocal.rotateX(2);
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.SPACE]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             PrimaAbgabeLW.avatar.computeJumpForce();
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.C]) && !cIsPressed) {
             hndlCameraPerspective();
             cIsPressed = true;
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (!fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.C]) && cIsPressed) {
             cIsPressed = false;
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && !kIsPressed) {
             callGetPlatformUp(0);
             kIsPressed = true;
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
         if (!fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && kIsPressed) {
             kIsPressed = false;
+            if (!PrimaAbgabeLW.audioIsRunning)
+                soundOn();
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
-            let backgroundAudio = new fc.Audio("../lvl/audio/Feels - Patrick Patrikios.mp3");
-            PrimaAbgabeLW.avatar.headMovement.addComponent(createAudioComponentBackground(backgroundAudio));
+        /*if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
+            
+            farCamera.addComponent(cmpBackgroundAudio);
+            for (let distractor of allDistractors.getChildren()) {
+                distractor.addComponent(componentAudioDistractor());
+            }
+            farCamera.addComponent(farEars);
             console.log("Audio sollte jetzt an sein");
             audioIsRunning = true;
-        }
+        }*/
     }
     function createRigidbodys() {
         let lvl = graph.getChildrenByName("lvl")[0];
@@ -220,7 +262,7 @@ var PrimaAbgabeLW;
         }
         if (PrimaAbgabeLW.avatar.lives == 0) {
             activePhase = GamePhase.Lost;
-            console.log("you loose");
+            alert("you loose");
             restartGame();
         }
     }
@@ -268,10 +310,14 @@ var PrimaAbgabeLW;
         if (thirdPerson) {
             thirdPerson = false;
             PrimaAbgabeLW.avatar.headMovement.addComponent(PrimaAbgabeLW.cmpCamera);
+            fc.AudioManager.default.listenWith(PrimaAbgabeLW.avatar.headMovement.getComponent(ƒ.ComponentAudioListener));
+            PrimaAbgabeLW.avatar.headMovement.addComponent(cmpBackgroundAudio);
         }
         else if (!thirdPerson) {
             thirdPerson = true;
             farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
+            fc.AudioManager.default.listenWith(farEars);
+            farCamera.addComponent(cmpBackgroundAudio);
         }
     }
     /*
@@ -311,37 +357,42 @@ var PrimaAbgabeLW;
     }
     PrimaAbgabeLW.callGetPlatformUp = callGetPlatformUp;
     function createPlatform() {
-        let platformCoordinates;
-        let platformPos;
-        for (let i = 0; i < platformArray.length; i++) {
-            if (i == 0) {
-                platformCoordinates = new fc.Vector3(7, 1, 7);
-                platformPos = PrimaAbgabeLW.PlatPos.rt;
+        try {
+            let platformCoordinates;
+            let platformPos;
+            for (let i = 0; i < platformArray.length; i++) {
+                if (i == 0) {
+                    platformCoordinates = new fc.Vector3(7, 1, 7);
+                    platformPos = PrimaAbgabeLW.PlatPos.rt;
+                }
+                else {
+                    platformPos = computenextPlatformPosition(platformArray[i - 1]);
+                    platformCoordinates = computeNextPlatformCoordinates(platformPos, platformArray[i - 1].mtxLocal.translation.y - 30);
+                }
+                if (i == platformArray.length - 1) {
+                    platformArray[i] = new PrimaAbgabeLW.Platform("platform" + i, platformCoordinates, new fc.Vector3(5, 1, 5), false, i, platformPos, false, true);
+                }
+                else {
+                    platformArray[i] = new PrimaAbgabeLW.Platform("platform" + i, platformCoordinates, new fc.Vector3(5, 1, 5), false, i, platformPos, false, false);
+                }
+                if (i == 0) {
+                    platformArray[i].activePlatform = true;
+                    platformArray[i].up = true;
+                }
+                allPlatforms.addChild(platformArray[i]);
+                createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
+                let ranDistractor = fc.Random.default.getRangeFloored(0, 2);
+                if (ranDistractor == 1) {
+                    let distractor = new PrimaAbgabeLW.Distractor("Distractor " + i, i);
+                    allDistractors.addChild(distractor);
+                    distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
+                    distractor.mtxLocal.translateZ(platformArray[i].mtxLocal.translation.z);
+                    distractor.mtxLocal.translateY(platformArray[i].mtxLocal.translation.y + 1);
+                }
             }
-            else {
-                platformPos = computenextPlatformPosition(platformArray[i - 1]);
-                platformCoordinates = computeNextPlatformCoordinates(platformPos, platformArray[i - 1].mtxLocal.translation.y - 30);
-            }
-            if (i == platformArray.length - 1) {
-                platformArray[i] = new PrimaAbgabeLW.Platform("platform" + i, platformCoordinates, new fc.Vector3(5, 1, 5), false, i, platformPos, false, true);
-            }
-            else {
-                platformArray[i] = new PrimaAbgabeLW.Platform("platform" + i, platformCoordinates, new fc.Vector3(5, 1, 5), false, i, platformPos, false, false);
-            }
-            if (i == 0) {
-                platformArray[i].activePlatform = true;
-                platformArray[i].up = true;
-            }
-            allPlatforms.addChild(platformArray[i]);
-            createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
-            let ranDistractor = fc.Random.default.getRangeFloored(0, 2);
-            if (ranDistractor == 1) {
-                let distractor = new PrimaAbgabeLW.Distractor("Distractor " + i, i);
-                allDistractors.addChild(distractor);
-                distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
-                distractor.mtxLocal.translateZ(platformArray[i].mtxLocal.translation.z);
-                distractor.mtxLocal.translateY(platformArray[i].mtxLocal.translation.y + 1);
-            }
+        }
+        catch {
+            console.log("no platforms yet");
         }
     }
     function getPlatformUp(_platform) {
@@ -474,13 +525,29 @@ var PrimaAbgabeLW;
             allStopper.addChild(newStopper2);
         }
     }
+    function soundOn() {
+        farCamera.addComponent(cmpBackgroundAudio);
+        for (let distractor of allDistractors.getChildren()) {
+            distractor.addComponent(componentAudioDistractor());
+        }
+        farCamera.addComponent(farEars);
+        PrimaAbgabeLW.audioIsRunning = true;
+    }
     function createAudioComponentBackground(_backgroundAudio) {
         let cmpAudio;
         cmpAudio = new fc.ComponentAudio(_backgroundAudio, true);
-        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_OUTER_ANGLE, 360);
-        cmpAudio.setPanner(ƒ.AUDIO_PANNER.CONE_INNER_ANGLE, 30);
-        cmpAudio.activate(cmpAudio.isActive);
+        cmpAudio.volume = 0.5;
         cmpAudio.play(true);
+        return cmpAudio;
+    }
+    function componentAudioDistractor() {
+        let cmpAudio;
+        cmpAudio = new fc.ComponentAudio(distractorAudio, false);
+        return cmpAudio;
+    }
+    function componentAudioJump() {
+        let cmpAudio;
+        cmpAudio = new fc.ComponentAudio(jumpAudio, false);
         return cmpAudio;
     }
     function hndlOptionsStart() {
@@ -523,6 +590,10 @@ var PrimaAbgabeLW;
         if (start) {
             start.style.display = "none";
         }
+        let platformValue = document.getElementById("plattformCount");
+        if (platformValue) {
+            console.log(platformValue.value);
+        }
         console.log("Start");
         activePhase = GamePhase.Running;
         try {
@@ -531,6 +602,7 @@ var PrimaAbgabeLW;
         catch {
             console.log("sauber?");
         }
+        platformArray = new Array(+platformValue.value);
         startInteractiveViewport();
     }
     function hndlReturn() {
