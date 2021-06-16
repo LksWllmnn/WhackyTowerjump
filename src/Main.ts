@@ -363,7 +363,7 @@ namespace PrimaAbgabeLW {
     }
 
     function restartGame(): void {
-        if (gameState.score > +localStorage.getItem("whackyHighScore") && localStorage.getItem("whackyHighScore") != null) {
+        if (gameState.score > +localStorage.getItem("whackyHighScore")) {
             localStorage.setItem("whackyHighScore", "" + gameState.score);
         } 
         clearAll();

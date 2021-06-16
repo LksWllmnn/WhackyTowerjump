@@ -277,7 +277,7 @@ var PrimaAbgabeLW;
         transFarCamera.mtxLocal.translation = mtxFarCam;
     }
     function restartGame() {
-        if (PrimaAbgabeLW.gameState.score > +localStorage.getItem("whackyHighScore") && localStorage.getItem("whackyHighScore") != null) {
+        if (PrimaAbgabeLW.gameState.score > +localStorage.getItem("whackyHighScore")) {
             localStorage.setItem("whackyHighScore", "" + PrimaAbgabeLW.gameState.score);
         }
         clearAll();
