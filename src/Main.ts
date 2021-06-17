@@ -73,7 +73,7 @@ namespace PrimaAbgabeLW {
         await fc.Project.loadResourcesFromHTML();
         let jsonGraph: fc.SerializableResource = fc.Project.resources["Graph|2021-05-19T16:31:42.747Z|51435"];
         graph = <fc.Graph>jsonGraph;
-        console.log(graph);
+        //console.log(graph);
         loadBaseData();
     }
 
@@ -118,8 +118,6 @@ namespace PrimaAbgabeLW {
         if (localStorage.getItem("whackyHighScore") == null) {
             localStorage.setItem("whackyHighScore", "0");
         }
-
-        fc.Physics.settings.debugDraw = true;
 
         loadAllButtons();
 
@@ -247,7 +245,7 @@ namespace PrimaAbgabeLW {
         try {
             ray = fc.Physics.raycast(avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
         } catch {
-            console.log("no ray for you now");
+            console.log("no ray right now");
         }
         
 
@@ -709,7 +707,7 @@ namespace PrimaAbgabeLW {
             inputnumb.style.display = "block";
         }
 
-        console.log("options Start");
+        //console.log("options Start");
     }
 
     function hndlPauseReturn(): void {
@@ -746,7 +744,7 @@ namespace PrimaAbgabeLW {
         }
 
         activePhase = GamePhase.Option;
-        console.log("options Return");
+        //console.log("options Return");
     }
 
     function hndlStart(): void {
@@ -761,11 +759,11 @@ namespace PrimaAbgabeLW {
 
         let platformValue: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
         if (platformValue) {
-            console.log(platformValue.value);
+            //console.log(platformValue.value);
         }
         let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
         if (disturberProbability) {
-            console.log(disturberProbability.value);
+            //console.log(disturberProbability.value);
         }
 
         
@@ -774,7 +772,7 @@ namespace PrimaAbgabeLW {
         try {
             clearAll();
         } catch {
-            console.log("sauber?");
+            console.log("graph seams to be clean");
         }
         platformArray = new Array(+platformValue.value);
         disturberProb = +disturberProbability.value;

@@ -37,7 +37,7 @@ var PrimaAbgabeLW;
         await fc.Project.loadResourcesFromHTML();
         let jsonGraph = fc.Project.resources["Graph|2021-05-19T16:31:42.747Z|51435"];
         graph = jsonGraph;
-        console.log(graph);
+        //console.log(graph);
         loadBaseData();
     }
     async function loadBaseData() {
@@ -75,7 +75,6 @@ var PrimaAbgabeLW;
         if (localStorage.getItem("whackyHighScore") == null) {
             localStorage.setItem("whackyHighScore", "0");
         }
-        fc.Physics.settings.debugDraw = true;
         loadAllButtons();
         let canvas = document.querySelector("canvas");
         viewport = new FudgeCore.Viewport();
@@ -176,7 +175,7 @@ var PrimaAbgabeLW;
             ray = fc.Physics.raycast(PrimaAbgabeLW.avatar.mtxWorld.translation, new fc.Vector3(0, -1, 0), 1);
         }
         catch {
-            console.log("no ray for you now");
+            console.log("no ray right now");
         }
         if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.A]) && ray.hit && !PrimaAbgabeLW.avatar.isParalyzed) {
             cmpAvatar.rotateBody(new fc.Vector3(0, 2, 0));
@@ -581,7 +580,7 @@ var PrimaAbgabeLW;
         if (inputnumb) {
             inputnumb.style.display = "block";
         }
-        console.log("options Start");
+        //console.log("options Start");
     }
     function hndlPauseReturn() {
         let options = document.getElementById("options");
@@ -613,7 +612,7 @@ var PrimaAbgabeLW;
             inputnumb.style.display = "none";
         }
         activePhase = GamePhase.Option;
-        console.log("options Return");
+        //console.log("options Return");
     }
     function hndlStart() {
         let options = document.getElementById("options");
@@ -626,18 +625,18 @@ var PrimaAbgabeLW;
         }
         let platformValue = document.getElementById("plattformCount");
         if (platformValue) {
-            console.log(platformValue.value);
+            //console.log(platformValue.value);
         }
         let disturberProbability = document.getElementById("disturberProbability");
         if (disturberProbability) {
-            console.log(disturberProbability.value);
+            //console.log(disturberProbability.value);
         }
         activePhase = GamePhase.Running;
         try {
             clearAll();
         }
         catch {
-            console.log("sauber?");
+            console.log("graph seams to be clean");
         }
         platformArray = new Array(+platformValue.value);
         disturberProb = +disturberProbability.value;
