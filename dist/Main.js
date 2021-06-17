@@ -59,6 +59,7 @@ var PrimaAbgabeLW;
             PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
         }
         else {
+            localStorage.setItem("whackyHighScore", "" + 0);
             PrimaAbgabeLW.gameState.highscore = 0;
         }
         distractorAudio = new fc.Audio("../lvl/audio/Peng.mp3");

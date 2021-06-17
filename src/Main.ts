@@ -94,6 +94,7 @@ namespace PrimaAbgabeLW {
         if (localStorage.getItem("whackyHighScore") != null) {
             gameState.highscore = +localStorage.getItem("whackyHighScore");
         } else {
+            localStorage.setItem("whackyHighScore", "" + 0);
             gameState.highscore = 0;
         }
         
@@ -105,7 +106,9 @@ namespace PrimaAbgabeLW {
     }
 
     function hndlLoaded(): void {
-        console.log(localStorage.getItem("whackyHighScore"));
+        if (localStorage.getItem("whackyHighScore") == null) {
+            localStorage.setItem("whackyHighScore", "0");
+        }
         fc.Physics.settings.debugDraw = true;
 
         loadAllButtons();
