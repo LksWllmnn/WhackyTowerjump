@@ -14,7 +14,7 @@ var PrimaAbgabeLW;
             this.cmpTransHead = new fc.ComponentTransform();
             this.avatarBody = new fc.Node("AvatarBody");
             this.avatarFeet = new fc.Node("AvatarFeet");
-            this.nose = new fc.Node("AvatarFarView");
+            this.nose = new fc.Node("Nose");
             this.avatarMeshHead = new fc.MeshSphere("AvatarMesh", 6, 6);
             this.cmpAvatarMeshHead = new fc.ComponentMesh(this.avatarMeshHead);
             this.avatarMeshBody = new fc.MeshCube("AvatarMeshBody");

@@ -18,7 +18,7 @@ var PrimaAbgabeLW;
     let viewport;
     let thirdPerson;
     let cIsPressed;
-    let kIsPressed;
+    //let kIsPressed: boolean;
     let cmpAvatar;
     let ray;
     let farEars;
@@ -47,7 +47,7 @@ var PrimaAbgabeLW;
         PrimaAbgabeLW.createNewPlatform = baseData["createNewPlatform"];
         iTriggerActivator = baseData["iTriggerActivator"];
         PrimaAbgabeLW.isOnPLatform = baseData["isOnPLatform"];
-        kIsPressed = baseData["kIsPressed"];
+        //kIsPressed = baseData["kIsPressed"];
         let platformValue = document.getElementById("plattformCount");
         if (platformValue) {
             platformValue.value = "" + baseData["platformArray"];
@@ -111,6 +111,7 @@ var PrimaAbgabeLW;
         distractor.mtxLocal.translateY(1);
         allDistractors.appendChild(distractor);
         viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
+        console.log(graph);
         PrimaAbgabeLW.Hud.start();
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
@@ -223,17 +224,17 @@ var PrimaAbgabeLW;
             if (!PrimaAbgabeLW.audioIsRunning)
                 soundOn();
         }
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && !kIsPressed) {
+        /*if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && !kIsPressed) {
             callGetPlatformUp(0);
             kIsPressed = true;
-            if (!PrimaAbgabeLW.audioIsRunning)
+            if (!audioIsRunning)
                 soundOn();
         }
         if (!fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && kIsPressed) {
             kIsPressed = false;
-            if (!PrimaAbgabeLW.audioIsRunning)
+            if (!audioIsRunning)
                 soundOn();
-        }
+        } */
     }
     function createRigidbodys() {
         let lvl = graph.getChildrenByName("lvl")[0];

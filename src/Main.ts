@@ -36,7 +36,7 @@ namespace PrimaAbgabeLW {
 
     let thirdPerson: boolean;
     let cIsPressed: boolean;
-    let kIsPressed: boolean;
+    //let kIsPressed: boolean;
 
     let cmpAvatar: fc.ComponentRigidbody; 
     export let avatar: Avatar;
@@ -84,7 +84,7 @@ namespace PrimaAbgabeLW {
         createNewPlatform = baseData["createNewPlatform"];
         iTriggerActivator = baseData["iTriggerActivator"];
         isOnPLatform = baseData["isOnPLatform"];
-        kIsPressed = baseData["kIsPressed"];
+        //kIsPressed = baseData["kIsPressed"];
 
         let platformValue: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
         if (platformValue) {
@@ -169,6 +169,8 @@ namespace PrimaAbgabeLW {
         allDistractors.appendChild(distractor);
 
         viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
+
+        console.log(graph);
 
         Hud.start();
        
@@ -304,7 +306,7 @@ namespace PrimaAbgabeLW {
                 soundOn();
         }
 
-        if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && !kIsPressed) {
+        /*if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.K]) && !kIsPressed) {
             callGetPlatformUp(0);
             kIsPressed = true;
             if (!audioIsRunning)
@@ -314,7 +316,7 @@ namespace PrimaAbgabeLW {
             kIsPressed = false;
             if (!audioIsRunning)
                 soundOn();
-        } 
+        } */
     }
 
     function createRigidbodys(): void {

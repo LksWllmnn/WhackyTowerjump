@@ -12,7 +12,7 @@ namespace PrimaAbgabeLW {
         private cmpTransHead: fc.ComponentTransform = new fc.ComponentTransform();
         private avatarBody: fc.Node = new fc.Node("AvatarBody");
         private avatarFeet: fc.Node = new fc.Node("AvatarFeet");
-        private nose: fc.Node = new fc.Node("AvatarFarView");
+        private nose: fc.Node = new fc.Node("Nose");
         private avatarMeshHead: fc.Mesh = new fc.MeshSphere("AvatarMesh", 6, 6);
         private cmpAvatarMeshHead: fc.ComponentMesh = new fc.ComponentMesh(this.avatarMeshHead);
         private avatarMeshBody: fc.Mesh = new fc.MeshCube("AvatarMeshBody");
