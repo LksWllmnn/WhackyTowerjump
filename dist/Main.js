@@ -98,7 +98,7 @@ var PrimaAbgabeLW;
         transFarCamera.mtxLocal.translateX(-30);
         transFarCamera.mtxLocal.translateZ(-30);
         transFarCamera.mtxLocal.rotateY(45);
-        transFarCamera.mtxLocal.rotateX(35);
+        transFarCamera.mtxLocal.rotateX(30);
         farCamera.addComponent(transFarCamera);
         farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         graph.addChild(farCamera);
@@ -565,6 +565,22 @@ var PrimaAbgabeLW;
         if (returnButton) {
             returnButton.style.display = "none";
         }
+        let labelProb = document.getElementById("disturberProbabilityLabel");
+        if (labelProb) {
+            labelProb.style.display = "block";
+        }
+        let inputProb = document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "block";
+        }
+        let labelNumb = document.getElementById("plattformCountLabel");
+        if (labelNumb) {
+            labelNumb.style.display = "block";
+        }
+        let inputnumb = document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "block";
+        }
         console.log("options Start");
     }
     function hndlPauseReturn() {
@@ -580,7 +596,7 @@ var PrimaAbgabeLW;
         if (start) {
             start.style.display = "none";
         }
-        let labelProb = document.getElementById("disturberProbability");
+        let labelProb = document.getElementById("disturberProbabilityLabel");
         if (labelProb) {
             labelProb.style.display = "none";
         }
@@ -588,7 +604,7 @@ var PrimaAbgabeLW;
         if (inputProb) {
             inputProb.style.display = "none";
         }
-        let labelNumb = document.getElementById("plattformCount");
+        let labelNumb = document.getElementById("plattformCountLabel");
         if (labelNumb) {
             labelNumb.style.display = "none";
         }
@@ -615,22 +631,6 @@ var PrimaAbgabeLW;
         let disturberProbability = document.getElementById("disturberProbability");
         if (disturberProbability) {
             console.log(disturberProbability.value);
-        }
-        let labelProb = document.getElementById("disturberProbability");
-        if (labelProb) {
-            labelProb.style.display = "block";
-        }
-        let inputProb = document.getElementById("disturberProbability");
-        if (inputProb) {
-            inputProb.style.display = "block";
-        }
-        let labelNumb = document.getElementById("plattformCount");
-        if (labelNumb) {
-            labelNumb.style.display = "block";
-        }
-        let inputnumb = document.getElementById("plattformCount");
-        if (inputnumb) {
-            inputnumb.style.display = "block";
         }
         activePhase = GamePhase.Running;
         try {

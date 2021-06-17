@@ -150,7 +150,7 @@ namespace PrimaAbgabeLW {
         transFarCamera.mtxLocal.translateX(-30);
         transFarCamera.mtxLocal.translateZ(-30);
         transFarCamera.mtxLocal.rotateY(45);
-        transFarCamera.mtxLocal.rotateX(35);
+        transFarCamera.mtxLocal.rotateX(30);
 
         farCamera.addComponent(transFarCamera);
         
@@ -690,7 +690,25 @@ namespace PrimaAbgabeLW {
         let returnButton: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
         if (returnButton) {
             returnButton.style.display = "none";
+        } 
+
+        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbabilityLabel");
+        if (labelProb) {
+            labelProb.style.display = "block";
         }
+        let inputProb: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "block";
+        }
+        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCountLabel");
+        if (labelNumb) {
+            labelNumb.style.display = "block";
+        }
+        let inputnumb: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "block";
+        }
+
         console.log("options Start");
     }
 
@@ -710,7 +728,7 @@ namespace PrimaAbgabeLW {
             start.style.display = "none";
         }
 
-        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbability");
+        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbabilityLabel");
         if (labelProb) {
             labelProb.style.display = "none";
         }
@@ -718,7 +736,7 @@ namespace PrimaAbgabeLW {
         if (inputProb) {
             inputProb.style.display = "none";
         }
-        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCount");
+        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCountLabel");
         if (labelNumb) {
             labelNumb.style.display = "none";
         }
@@ -726,7 +744,6 @@ namespace PrimaAbgabeLW {
         if (inputnumb) {
             inputnumb.style.display = "none";
         }
-
 
         activePhase = GamePhase.Option;
         console.log("options Return");
@@ -751,22 +768,7 @@ namespace PrimaAbgabeLW {
             console.log(disturberProbability.value);
         }
 
-        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbability");
-        if (labelProb) {
-            labelProb.style.display = "block";
-        }
-        let inputProb: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
-        if (inputProb) {
-            inputProb.style.display = "block";
-        }
-        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCount");
-        if (labelNumb) {
-            labelNumb.style.display = "block";
-        }
-        let inputnumb: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
-        if (inputnumb) {
-            inputnumb.style.display = "block";
-        }
+        
         activePhase = GamePhase.Running;
         
         try {
