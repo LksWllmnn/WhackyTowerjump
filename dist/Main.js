@@ -14,6 +14,7 @@ var PrimaAbgabeLW;
     let allPlatforms;
     let allStopper;
     let allDistractors;
+    let disturberProb;
     let viewport;
     let thirdPerson;
     let cIsPressed;
@@ -51,6 +52,10 @@ var PrimaAbgabeLW;
         if (platformValue) {
             platformValue.value = "" + baseData["platformArray"];
         }
+        let disturberProbability = document.getElementById("plattformCount");
+        if (platformValue) {
+            disturberProbability.value = "" + baseData["disturberProb"];
+        }
         PrimaAbgabeLW.gameState.score = baseData["score"];
         thirdPerson = baseData["thirdPerson"];
         PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
@@ -67,7 +72,9 @@ var PrimaAbgabeLW;
         hndlLoaded();
     }
     function hndlLoaded() {
-        console.log(localStorage.getItem("whackyHighScore"));
+        if (localStorage.getItem("whackyHighScore") == null) {
+            localStorage.setItem("whackyHighScore", "0");
+        }
         fc.Physics.settings.debugDraw = true;
         loadAllButtons();
         let canvas = document.querySelector("canvas");
@@ -92,7 +99,6 @@ var PrimaAbgabeLW;
         transFarCamera.mtxLocal.translateZ(-30);
         transFarCamera.mtxLocal.rotateY(45);
         transFarCamera.mtxLocal.rotateX(35);
-        transFarCamera.mtxLocal.rotateZ(0);
         farCamera.addComponent(transFarCamera);
         farCamera.addComponent(PrimaAbgabeLW.cmpCamera);
         graph.addChild(farCamera);
@@ -229,16 +235,6 @@ var PrimaAbgabeLW;
             if (!PrimaAbgabeLW.audioIsRunning)
                 soundOn();
         }
-        /*if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
-            
-            farCamera.addComponent(cmpBackgroundAudio);
-            for (let distractor of allDistractors.getChildren()) {
-                distractor.addComponent(componentAudioDistractor());
-            }
-            farCamera.addComponent(farEars);
-            console.log("Audio sollte jetzt an sein");
-            audioIsRunning = true;
-        }*/
     }
     function createRigidbodys() {
         let lvl = graph.getChildrenByName("lvl")[0];
@@ -285,7 +281,6 @@ var PrimaAbgabeLW;
         activePhase = GamePhase.Lost;
     }
     function clearAll() {
-        console.log(graph);
         PrimaAbgabeLW.avatar.removeComponent(PrimaAbgabeLW.avatar.getComponent(fc.ComponentRigidbody));
         let lvl = graph.getChildrenByName("lvl")[0];
         for (let lvlElement of lvl.getChildren()) {
@@ -388,8 +383,8 @@ var PrimaAbgabeLW;
                 }
                 allPlatforms.addChild(platformArray[i]);
                 createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
-                let ranDistractor = fc.Random.default.getRangeFloored(0, 2);
-                if (ranDistractor == 1) {
+                let ranDistractor = fc.Random.default.getRangeFloored(0, 5);
+                if (ranDistractor < disturberProb) {
                     let distractor = new PrimaAbgabeLW.Distractor("Distractor " + i, i);
                     allDistractors.addChild(distractor);
                     distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
@@ -585,6 +580,22 @@ var PrimaAbgabeLW;
         if (start) {
             start.style.display = "none";
         }
+        let labelProb = document.getElementById("disturberProbability");
+        if (labelProb) {
+            labelProb.style.display = "none";
+        }
+        let inputProb = document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "none";
+        }
+        let labelNumb = document.getElementById("plattformCount");
+        if (labelNumb) {
+            labelNumb.style.display = "none";
+        }
+        let inputnumb = document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "none";
+        }
         activePhase = GamePhase.Option;
         console.log("options Return");
     }
@@ -601,7 +612,26 @@ var PrimaAbgabeLW;
         if (platformValue) {
             console.log(platformValue.value);
         }
-        console.log("Start");
+        let disturberProbability = document.getElementById("disturberProbability");
+        if (disturberProbability) {
+            console.log(disturberProbability.value);
+        }
+        let labelProb = document.getElementById("disturberProbability");
+        if (labelProb) {
+            labelProb.style.display = "block";
+        }
+        let inputProb = document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "block";
+        }
+        let labelNumb = document.getElementById("plattformCount");
+        if (labelNumb) {
+            labelNumb.style.display = "block";
+        }
+        let inputnumb = document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "block";
+        }
         activePhase = GamePhase.Running;
         try {
             clearAll();
@@ -610,6 +640,7 @@ var PrimaAbgabeLW;
             console.log("sauber?");
         }
         platformArray = new Array(+platformValue.value);
+        disturberProb = +disturberProbability.value;
         startInteractiveViewport();
     }
     function hndlReturn() {

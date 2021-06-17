@@ -4,6 +4,7 @@
     "kIsPressed": false,
     "isOnPLatform": false,
     "platformArray": 10,
+    "disturberProb": 5,
     "iTriggerActivator": 0,
     "triggerOn": false,
     "createNewPlatform" : false,

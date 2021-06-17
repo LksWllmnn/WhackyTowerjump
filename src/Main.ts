@@ -7,6 +7,7 @@ namespace PrimaAbgabeLW {
         kIsPressed: boolean;
         isOnPLatform: boolean;
         platformArray: number;
+        disturberProb: number;
         iTriggerActivator: number;
         triggerOn: boolean;
         createNewPlatform: boolean;
@@ -27,6 +28,8 @@ namespace PrimaAbgabeLW {
     let allPlatforms: fc.Node; 
     let allStopper: fc.Node; 
     let allDistractors: fc.Node;
+
+    let disturberProb: number;
     
     let viewport: fc.Viewport;
     export let cmpCamera: fc.ComponentCamera;
@@ -82,10 +85,17 @@ namespace PrimaAbgabeLW {
         iTriggerActivator = baseData["iTriggerActivator"];
         isOnPLatform = baseData["isOnPLatform"];
         kIsPressed = baseData["kIsPressed"];
+
         let platformValue: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
         if (platformValue) {
             platformValue.value = "" + baseData["platformArray"];
         }
+
+        let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        if (platformValue) {
+            disturberProbability.value = "" + baseData["disturberProb"];
+        }
+
         gameState.score = baseData["score"];
         thirdPerson = baseData["thirdPerson"];
         triggerOn = baseData["triggerOn"];
@@ -98,7 +108,6 @@ namespace PrimaAbgabeLW {
             gameState.highscore = 0;
         }
         
-
         distractorAudio = new fc.Audio("../lvl/audio/Peng.mp3");
         jumpAudio = new fc.Audio("../lvl/audio/gotShot.mp3");
 
@@ -109,6 +118,7 @@ namespace PrimaAbgabeLW {
         if (localStorage.getItem("whackyHighScore") == null) {
             localStorage.setItem("whackyHighScore", "0");
         }
+
         fc.Physics.settings.debugDraw = true;
 
         loadAllButtons();
@@ -141,7 +151,6 @@ namespace PrimaAbgabeLW {
         transFarCamera.mtxLocal.translateZ(-30);
         transFarCamera.mtxLocal.rotateY(45);
         transFarCamera.mtxLocal.rotateX(35);
-        transFarCamera.mtxLocal.rotateZ(0);
 
         farCamera.addComponent(transFarCamera);
         
@@ -307,19 +316,7 @@ namespace PrimaAbgabeLW {
             kIsPressed = false;
             if (!audioIsRunning)
                 soundOn();
-        }
-
-        /*if (fc.Keyboard.isPressedOne([fc.KEYBOARD_CODE.Q]) && !audioIsRunning) {
-            
-            farCamera.addComponent(cmpBackgroundAudio);
-            for (let distractor of allDistractors.getChildren()) {
-                distractor.addComponent(componentAudioDistractor());
-            }
-            farCamera.addComponent(farEars);
-            console.log("Audio sollte jetzt an sein");
-            audioIsRunning = true;
-        }*/
-        
+        } 
     }
 
     function createRigidbodys(): void {
@@ -374,7 +371,6 @@ namespace PrimaAbgabeLW {
     }
 
     function clearAll(): void {
-        console.log(graph);
         avatar.removeComponent(avatar.getComponent(fc.ComponentRigidbody));
             
         let lvl: fc.Node = graph.getChildrenByName("lvl")[0];
@@ -493,8 +489,8 @@ namespace PrimaAbgabeLW {
                 allPlatforms.addChild(platformArray[i]);
                 createStopper(platformArray[i].position, platformArray[i].mtxLocal.translation, platformArray[i].number);
 
-                let ranDistractor: number = fc.Random.default.getRangeFloored(0, 2);
-                if (ranDistractor == 1) {
+                let ranDistractor: number = fc.Random.default.getRangeFloored(0, 5);
+                if (ranDistractor < disturberProb) {
                     let distractor: Distractor = new Distractor("Distractor " + i, i);
                     allDistractors.addChild(distractor);
                     distractor.mtxLocal.translateX(platformArray[i].mtxLocal.translation.x);
@@ -703,14 +699,35 @@ namespace PrimaAbgabeLW {
         if (options) {
             options.style.display = "block";
         }
+
         let restart: HTMLButtonElement = <HTMLButtonElement>document.getElementById("return");
         if (restart) {
             restart.style.display = "block";
         }
+
         let start: HTMLButtonElement = <HTMLButtonElement>document.getElementById("start");
         if (start) {
             start.style.display = "none";
         }
+
+        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbability");
+        if (labelProb) {
+            labelProb.style.display = "none";
+        }
+        let inputProb: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "none";
+        }
+        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCount");
+        if (labelNumb) {
+            labelNumb.style.display = "none";
+        }
+        let inputnumb: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "none";
+        }
+
+
         activePhase = GamePhase.Option;
         console.log("options Return");
     }
@@ -729,8 +746,27 @@ namespace PrimaAbgabeLW {
         if (platformValue) {
             console.log(platformValue.value);
         }
+        let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
+        if (disturberProbability) {
+            console.log(disturberProbability.value);
+        }
 
-        console.log("Start");
+        let labelProb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("disturberProbability");
+        if (labelProb) {
+            labelProb.style.display = "block";
+        }
+        let inputProb: HTMLInputElement = <HTMLInputElement>document.getElementById("disturberProbability");
+        if (inputProb) {
+            inputProb.style.display = "block";
+        }
+        let labelNumb: HTMLLabelElement = <HTMLLabelElement>document.getElementById("plattformCount");
+        if (labelNumb) {
+            labelNumb.style.display = "block";
+        }
+        let inputnumb: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        if (inputnumb) {
+            inputnumb.style.display = "block";
+        }
         activePhase = GamePhase.Running;
         
         try {
@@ -739,6 +775,7 @@ namespace PrimaAbgabeLW {
             console.log("sauber?");
         }
         platformArray = new Array(+platformValue.value);
+        disturberProb = +disturberProbability.value;
 
         startInteractiveViewport();
     }
