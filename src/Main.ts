@@ -2,17 +2,9 @@ namespace PrimaAbgabeLW {
     import fc = FudgeCore;
 
     interface BaseData {
-        thirdPerson: true;
-        cIsPressed: boolean;
-        kIsPressed: boolean;
-        isOnPLatform: boolean;
         platformArray: number;
         disturberProb: number;
-        iTriggerActivator: number;
-        triggerOn: boolean;
-        createNewPlatform: boolean;
-        score: number;
-        audioIsRunning: boolean;
+        difficulty: string;
     }
 
     enum GamePhase {
@@ -37,7 +29,6 @@ namespace PrimaAbgabeLW {
 
     let thirdPerson: boolean;
     let cIsPressed: boolean;
-    //let kIsPressed: boolean;
 
     let cmpAvatar: fc.ComponentRigidbody; 
     export let avatar: Avatar;
@@ -65,6 +56,8 @@ namespace PrimaAbgabeLW {
     let jumpAudio: fc.Audio;
     let cmpBackgroundAudio: fc.ComponentAudio;
 
+    let difficulty: string;
+
     window.addEventListener("load", startInteractiveViewport);
 
     window.addEventListener("keyup", hndlJump);
@@ -81,26 +74,27 @@ namespace PrimaAbgabeLW {
     async function loadBaseData(): Promise<void> {
         let baseJson: Response = await fetch("../lvl/rootData.json");
         let baseData: BaseData = await baseJson.json();
-        cIsPressed = baseData["cIsPressed"];
-        createNewPlatform = baseData["createNewPlatform"];
-        iTriggerActivator = baseData["iTriggerActivator"];
-        isOnPLatform = baseData["isOnPLatform"];
-        //kIsPressed = baseData["kIsPressed"];
-
         let platformValue: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
         if (platformValue) {
             platformValue.value = "" + baseData["platformArray"];
         }
+        disturberProb = baseData["disturberProb"];
+        difficulty = baseData["difficulty"];
 
-        let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
-        if (platformValue) {
-            disturberProbability.value = "" + baseData["disturberProb"];
-        }
+        cIsPressed = false;
+        thirdPerson = true;
+        createNewPlatform = false;
+        iTriggerActivator = 0;
+        isOnPLatform = false;
 
-        gameState.score = baseData["score"];
-        thirdPerson = baseData["thirdPerson"];
-        triggerOn = baseData["triggerOn"];
-        audioIsRunning = baseData["audioIsRunning"];
+        //let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        //if (platformValue) {
+        //    disturberProbability.value = "" + baseData["disturberProb"];
+        //}
+
+        gameState.score = 0;
+        triggerOn = false;
+        audioIsRunning = false;
 
         if (localStorage.getItem("whackyHighScore") != null) {
             gameState.highscore = +localStorage.getItem("whackyHighScore");
@@ -533,7 +527,21 @@ namespace PrimaAbgabeLW {
     function computeNextPlatformCoordinates(_newPos: PlatPos, _lastPlatAltitude: number): fc.Vector3 {
         let nextPlatformCoordinates: fc.Vector3;
 
-        let ranYPos: number = fc.Random.default.getRangeFloored(2, 3);
+        let ranYPos: number;
+
+        switch (difficulty) {
+            case "easy":
+                ranYPos = fc.Random.default.getRangeFloored(1, 3);
+                break;
+            case "medium":
+                ranYPos = fc.Random.default.getRangeFloored(1, 4);
+                break;
+            case "hard":
+                ranYPos = fc.Random.default.getRangeFloored(2, 6);
+                break;
+        }
+
+        //console.log(ranYPos);
 
         switch (_newPos) {
             case PlatPos.lt:
@@ -785,7 +793,7 @@ namespace PrimaAbgabeLW {
             console.log("graph seams to be clean");
         }
         platformArray = new Array(+platformValue.value);
-        disturberProb = +disturberProbability.value;
+        //disturberProb = +disturberProbability.value;
 
         startInteractiveViewport();
     }

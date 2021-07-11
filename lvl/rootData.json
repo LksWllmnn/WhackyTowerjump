@@ -1,13 +1,5 @@
 {
-    "thirdPerson": true,
-    "cIsPressed": false,
-    "kIsPressed": false,
-    "isOnPLatform": false,
     "platformArray": 10,
     "disturberProb": 5,
-    "iTriggerActivator": 0,
-    "triggerOn": false,
-    "createNewPlatform" : false,
-    "score": 0,
-    "audioIsRunning": false
+    "difficulty":"medium"
 }

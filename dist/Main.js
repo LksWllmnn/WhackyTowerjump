@@ -19,7 +19,6 @@ var PrimaAbgabeLW;
     let viewport;
     let thirdPerson;
     let cIsPressed;
-    //let kIsPressed: boolean;
     let cmpAvatar;
     let ray;
     let farEars;
@@ -32,6 +31,7 @@ var PrimaAbgabeLW;
     let distractorAudio;
     let jumpAudio;
     let cmpBackgroundAudio;
+    let difficulty;
     window.addEventListener("load", startInteractiveViewport);
     window.addEventListener("keyup", hndlJump);
     async function startInteractiveViewport() {
@@ -44,23 +44,24 @@ var PrimaAbgabeLW;
     async function loadBaseData() {
         let baseJson = await fetch("../lvl/rootData.json");
         let baseData = await baseJson.json();
-        cIsPressed = baseData["cIsPressed"];
-        PrimaAbgabeLW.createNewPlatform = baseData["createNewPlatform"];
-        iTriggerActivator = baseData["iTriggerActivator"];
-        PrimaAbgabeLW.isOnPLatform = baseData["isOnPLatform"];
-        //kIsPressed = baseData["kIsPressed"];
         let platformValue = document.getElementById("plattformCount");
         if (platformValue) {
             platformValue.value = "" + baseData["platformArray"];
         }
-        let disturberProbability = document.getElementById("plattformCount");
-        if (platformValue) {
-            disturberProbability.value = "" + baseData["disturberProb"];
-        }
-        PrimaAbgabeLW.gameState.score = baseData["score"];
-        thirdPerson = baseData["thirdPerson"];
-        PrimaAbgabeLW.triggerOn = baseData["triggerOn"];
-        PrimaAbgabeLW.audioIsRunning = baseData["audioIsRunning"];
+        disturberProb = baseData["disturberProb"];
+        difficulty = baseData["difficulty"];
+        cIsPressed = false;
+        thirdPerson = true;
+        PrimaAbgabeLW.createNewPlatform = false;
+        iTriggerActivator = 0;
+        PrimaAbgabeLW.isOnPLatform = false;
+        //let disturberProbability: HTMLInputElement = <HTMLInputElement>document.getElementById("plattformCount");
+        //if (platformValue) {
+        //    disturberProbability.value = "" + baseData["disturberProb"];
+        //}
+        PrimaAbgabeLW.gameState.score = 0;
+        PrimaAbgabeLW.triggerOn = false;
+        PrimaAbgabeLW.audioIsRunning = false;
         if (localStorage.getItem("whackyHighScore") != null) {
             PrimaAbgabeLW.gameState.highscore = +localStorage.getItem("whackyHighScore");
         }
@@ -423,7 +424,19 @@ var PrimaAbgabeLW;
     PrimaAbgabeLW.getPlatformUp = getPlatformUp;
     function computeNextPlatformCoordinates(_newPos, _lastPlatAltitude) {
         let nextPlatformCoordinates;
-        let ranYPos = fc.Random.default.getRangeFloored(2, 3);
+        let ranYPos;
+        switch (difficulty) {
+            case "easy":
+                ranYPos = fc.Random.default.getRangeFloored(1, 3);
+                break;
+            case "medium":
+                ranYPos = fc.Random.default.getRangeFloored(1, 4);
+                break;
+            case "hard":
+                ranYPos = fc.Random.default.getRangeFloored(2, 6);
+                break;
+        }
+        //console.log(ranYPos);
         switch (_newPos) {
             case PrimaAbgabeLW.PlatPos.lt:
                 nextPlatformCoordinates = new fc.Vector3(-7, _lastPlatAltitude + ranYPos, 7);
@@ -648,7 +661,7 @@ var PrimaAbgabeLW;
             console.log("graph seams to be clean");
         }
         platformArray = new Array(+platformValue.value);
-        disturberProb = +disturberProbability.value;
+        //disturberProb = +disturberProbability.value;
         startInteractiveViewport();
     }
     function hndlReturn() {
