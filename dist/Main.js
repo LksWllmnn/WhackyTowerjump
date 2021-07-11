@@ -14,6 +14,7 @@ var PrimaAbgabeLW;
     let allPlatforms;
     let allStopper;
     let allDistractors;
+    let allAnnoyingCubes;
     let disturberProb;
     let viewport;
     let thirdPerson;
@@ -82,6 +83,7 @@ var PrimaAbgabeLW;
         allPlatforms = new fc.Node("All Platforms");
         allStopper = new fc.Node("AllStopper");
         allDistractors = new fc.Node("All Distractors");
+        allAnnoyingCubes = new fc.Node("All annoying Cubes");
         farEars = new fc.ComponentAudioListener();
         farCamera = new fc.Node("FarCamera");
         transFarCamera = new fc.ComponentTransform();
@@ -93,6 +95,7 @@ var PrimaAbgabeLW;
         graph.addChild(allPlatforms);
         graph.addChild(allStopper);
         graph.addChild(allDistractors);
+        graph.addChild(allAnnoyingCubes);
         transFarCamera.mtxLocal.translateY(15);
         transFarCamera.mtxLocal.translateX(-30);
         transFarCamera.mtxLocal.translateZ(-30);
@@ -139,7 +142,6 @@ var PrimaAbgabeLW;
     function renderAFrame() {
         //fc.Physics.settings.debugDraw = true;
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
-        //console.log(activePhase);
         if (iTriggerActivator > 15) {
             PrimaAbgabeLW.triggerOn = true;
         }
@@ -259,7 +261,7 @@ var PrimaAbgabeLW;
         }
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && !PrimaAbgabeLW.isOnPLatform) {
             let annoyingCube = new PrimaAbgabeLW.AnnoyingCube("Annoying", new fc.Vector3(PrimaAbgabeLW.avatar.mtxWorld.translation.x, PrimaAbgabeLW.avatar.mtxWorld.translation.y, PrimaAbgabeLW.avatar.mtxWorld.translation.z), false);
-            graph.addChild(annoyingCube);
+            allAnnoyingCubes.addChild(annoyingCube);
         }
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && PrimaAbgabeLW.isOnPLatform) {
             PrimaAbgabeLW.isOnPLatform = false;
@@ -267,7 +269,7 @@ var PrimaAbgabeLW;
             PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
             getPlattformDown();
             let annoyingCube = new PrimaAbgabeLW.AnnoyingCube("Annoying", new fc.Vector3(PrimaAbgabeLW.avatar.mtxWorld.translation.x, PrimaAbgabeLW.avatar.mtxWorld.translation.y, PrimaAbgabeLW.avatar.mtxWorld.translation.z), true);
-            graph.addChild(annoyingCube);
+            allAnnoyingCubes.addChild(annoyingCube);
         }
         if (PrimaAbgabeLW.avatar.lives == 0) {
             activePhase = GamePhase.Lost;
