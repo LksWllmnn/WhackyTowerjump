@@ -137,7 +137,7 @@ var PrimaAbgabeLW;
         }
     }
     function renderAFrame() {
-        fc.Physics.settings.debugDraw = true;
+        //fc.Physics.settings.debugDraw = true;
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
         //console.log(activePhase);
         if (iTriggerActivator > 15) {
