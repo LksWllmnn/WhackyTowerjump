@@ -46,6 +46,8 @@ namespace PrimaAbgabeLW {
             this.cmpAvatar.rotationInfluenceFactor = fc.Vector3.ZERO();
             this.cmpAvatar.friction = 1;
 
+            this.cmpAvatar.mtxPivot.translateY(5);
+
             cmpCamera.mtxPivot.translateY(0);
             cmpCamera.mtxPivot.translateZ(0);
 
@@ -84,6 +86,7 @@ namespace PrimaAbgabeLW {
             }
             gameState.jumpStrength = this.jumpForce;
         }
+
     
         public hndlJump(_event: KeyboardEvent): void {
             if (_event.code == "Space") {
@@ -94,7 +97,7 @@ namespace PrimaAbgabeLW {
                 if (audioIsRunning) {
                     this.getComponent(fc.ComponentAudio).play(true);
                 }
-            } 
+            }
         }
 
         public recover(): void {

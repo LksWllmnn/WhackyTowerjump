@@ -38,6 +38,7 @@ var PrimaAbgabeLW;
             this.cmpAvatar.restitution = 0.5;
             this.cmpAvatar.rotationInfluenceFactor = fc.Vector3.ZERO();
             this.cmpAvatar.friction = 1;
+            this.cmpAvatar.mtxPivot.translateY(5);
             PrimaAbgabeLW.cmpCamera.mtxPivot.translateY(0);
             PrimaAbgabeLW.cmpCamera.mtxPivot.translateZ(0);
             this.addComponent(new fc.ComponentTransform(fc.Matrix4x4.TRANSLATION(fc.Vector3.Y(5))));

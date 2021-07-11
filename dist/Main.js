@@ -111,7 +111,6 @@ var PrimaAbgabeLW;
         distractor.mtxLocal.translateY(1);
         allDistractors.appendChild(distractor);
         viewport.initialize("InteractiveViewport", graph, PrimaAbgabeLW.cmpCamera, canvas);
-        console.log(graph);
         PrimaAbgabeLW.Hud.start();
         fc.Physics.adjustTransforms(graph, true);
         fc.Loop.start(fc.LOOP_MODE.TIME_REAL, 30);
@@ -138,6 +137,7 @@ var PrimaAbgabeLW;
         }
     }
     function renderAFrame() {
+        fc.Physics.settings.debugDraw = true;
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
         //console.log(activePhase);
         if (iTriggerActivator > 15) {
@@ -257,11 +257,17 @@ var PrimaAbgabeLW;
         if (_event.cmpRigidbody.getContainer() == null) {
             return;
         }
+        if (_event.cmpRigidbody.getContainer().name == "Avatar" && !PrimaAbgabeLW.isOnPLatform) {
+            let annoyingCube = new PrimaAbgabeLW.AnnoyingCube("Annoying", new fc.Vector3(PrimaAbgabeLW.avatar.mtxWorld.translation.x, PrimaAbgabeLW.avatar.mtxWorld.translation.y, PrimaAbgabeLW.avatar.mtxWorld.translation.z), false);
+            graph.addChild(annoyingCube);
+        }
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && PrimaAbgabeLW.isOnPLatform) {
             PrimaAbgabeLW.isOnPLatform = false;
             PrimaAbgabeLW.avatar.lives--;
             PrimaAbgabeLW.gameState.lives = PrimaAbgabeLW.avatar.lives;
             getPlattformDown();
+            let annoyingCube = new PrimaAbgabeLW.AnnoyingCube("Annoying", new fc.Vector3(PrimaAbgabeLW.avatar.mtxWorld.translation.x, PrimaAbgabeLW.avatar.mtxWorld.translation.y, PrimaAbgabeLW.avatar.mtxWorld.translation.z), true);
+            graph.addChild(annoyingCube);
         }
         if (PrimaAbgabeLW.avatar.lives == 0) {
             activePhase = GamePhase.Lost;

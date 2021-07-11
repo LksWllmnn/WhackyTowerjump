@@ -170,8 +170,6 @@ namespace PrimaAbgabeLW {
 
         viewport.initialize("InteractiveViewport", graph, cmpCamera, canvas);
 
-        console.log(graph);
-
         Hud.start();
        
         fc.Physics.adjustTransforms(graph, true);
@@ -205,6 +203,7 @@ namespace PrimaAbgabeLW {
     }
 
     function renderAFrame(): void {
+        fc.Physics.settings.debugDraw = true;
         fc.Physics.world.simulate(fc.Loop.timeFrameReal / 1000);
         //console.log(activePhase);
         if (iTriggerActivator > 15) {
@@ -342,12 +341,19 @@ namespace PrimaAbgabeLW {
         if (_event.cmpRigidbody.getContainer() == null) {
             return;
         }
+
+        if (_event.cmpRigidbody.getContainer().name == "Avatar" && !isOnPLatform) {
+            let annoyingCube: AnnoyingCube = new AnnoyingCube("Annoying", new fc.Vector3(avatar.mtxWorld.translation.x, avatar.mtxWorld.translation.y, avatar.mtxWorld.translation.z), false);
+            graph.addChild(annoyingCube);
+        }
         
         if (_event.cmpRigidbody.getContainer().name == "Avatar" && isOnPLatform) {
             isOnPLatform = false;
             avatar.lives--;
             gameState.lives = avatar.lives;
             getPlattformDown();
+            let annoyingCube: AnnoyingCube = new AnnoyingCube("Annoying", new fc.Vector3(avatar.mtxWorld.translation.x, avatar.mtxWorld.translation.y, avatar.mtxWorld.translation.z), true);
+            graph.addChild(annoyingCube);
         }
         
         if (avatar.lives == 0) {
