@@ -59,6 +59,7 @@ input {
 }
 
 #options{
+  text-align: center;
   display: show;
   position: absolute;
   background-color: rgba(0, 128, 128, 1);
@@ -67,6 +68,11 @@ input {
   height: 100vh;
   top: 0px;
   left: 0px;
+  /*padding: 5em;*/
+}
+
+#options button, #options input {
+  margin: auto;
 }
 
 #plattformCount {
