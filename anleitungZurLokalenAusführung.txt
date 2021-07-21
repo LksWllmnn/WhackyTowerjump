@@ -1,0 +1,4 @@
+- zip oder Repo herunterladen
+- (falls zip diese erst entpacken)
+- html NewProject.html in Folder lvl (./lvl/NewProject.html) mit live-Server starten
+- Spiel sollte dann direkt ausgeführt werden
